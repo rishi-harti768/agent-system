@@ -10,6 +10,7 @@ import {
 } from '@mastra/observability';
 import { askUserTool } from '@mastra/core/tools';
 import {
+  chiefResearchAgent,
   agent,
   paperSearchAgent,
   citationAgent,
@@ -36,6 +37,8 @@ import { presentationWriterTool } from './tools/presentation-writer-tool';
 
 export const mastra = new Mastra({
   agents: {
+    'chief-research-agent': chiefResearchAgent,
+    chiefResearchAgent,
     agent,
     paperSearchAgent,
     citationAgent,
