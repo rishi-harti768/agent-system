@@ -1,7 +1,7 @@
 import { createTool } from '@mastra/core/tools';
 import { z } from 'zod';
 import fs from 'node:fs';
-import path from 'node:path';
+import { getSafeOutputPath } from './output-utils';
 
 export interface SlideInput {
   title: string;
@@ -252,19 +252,7 @@ export const presentationWriterTool = createTool({
     slides?: SlideInput[];
     filename?: string;
   }) => {
-    const outputDir = path.resolve(
-      import.meta.dirname,
-      '..',
-      '..',
-      '..',
-      'output',
-    );
-
     try {
-      if (!fs.existsSync(outputDir)) {
-        fs.mkdirSync(outputDir, { recursive: true });
-      }
-
       let finalHtml = content || '';
       let slideCount = 0;
 
@@ -283,7 +271,7 @@ export const presentationWriterTool = createTool({
       if (!finalHtml) {
         return {
           success: false,
-          filePath: path.join(outputDir, filename),
+          filePath: '',
           bytesWritten: 0,
           slideCount: 0,
           error:
@@ -291,10 +279,7 @@ export const presentationWriterTool = createTool({
         };
       }
 
-      const safeBasename =
-        path.basename(filename).replace(/[^a-zA-Z0-9_.-]/g, '_') ||
-        'PRESENTATION.html';
-      const filePath = path.resolve(outputDir, safeBasename);
+      const { filePath } = getSafeOutputPath(filename, 'PRESENTATION.html');
 
       fs.writeFileSync(filePath, finalHtml, 'utf-8');
       const bytesWritten = Buffer.byteLength(finalHtml, 'utf-8');
@@ -309,7 +294,7 @@ export const presentationWriterTool = createTool({
       const errorMessage = err instanceof Error ? err.message : String(err);
       return {
         success: false,
-        filePath: path.join(outputDir, filename),
+        filePath: '',
         bytesWritten: 0,
         slideCount: 0,
         error: errorMessage,

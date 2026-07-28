@@ -60,6 +60,27 @@ This report summarizes recent advances in multi-agent research frameworks.
       expect(result.filePath).toBe(defaultReportPath);
       expect(fs.existsSync(defaultReportPath)).toBe(true);
     });
+
+    test('generates structured markdown report from sections', async () => {
+      const result = await (reportWriterTool.execute as Function)({
+        title: 'Structured Research Synthesis',
+        executiveSummary: 'Automated synthesis of papers and benchmarks.',
+        sections: [
+          { heading: 'Literature Review', body: 'Reviewed arXiv and Semantic Scholar.' },
+          { heading: 'Benchmark Analysis', body: 'Evaluated SOTA metrics on Papers with Code.' },
+        ],
+        filename: 'TEST_REPORT.md',
+      });
+
+      expect(result.success).toBe(true);
+      expect(fs.existsSync(result.filePath)).toBe(true);
+
+      const content = fs.readFileSync(result.filePath, 'utf-8');
+      expect(content).toContain('# Structured Research Synthesis');
+      expect(content).toContain('## Executive Summary');
+      expect(content).toContain('## Literature Review');
+      expect(content).toContain('## Benchmark Analysis');
+    });
   });
 
   describe('presentationWriterTool', () => {
