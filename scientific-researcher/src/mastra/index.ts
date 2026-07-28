@@ -14,6 +14,9 @@ import { webFetchTool } from './tools/web-fetch-tool';
 import { arxivSearchTool } from './tools/arxiv-tool';
 import { semanticScholarSearchTool } from './tools/semantic-scholar-tool';
 import { papersWithCodeSearchTool } from './tools/papers-with-code-tool';
+import { githubSearchTool } from './tools/github-tool';
+import { huggingfaceSearchTool } from './tools/huggingface-tool';
+import { pythonSandboxTool } from './tools/python-sandbox-tool';
 
 export const mastra = new Mastra({
   agents: { agent },
@@ -24,6 +27,9 @@ export const mastra = new Mastra({
     arxivSearchTool,
     semanticScholarSearchTool,
     papersWithCodeSearchTool,
+    githubSearchTool,
+    huggingfaceSearchTool,
+    pythonSandboxTool,
   },
   storage: new MastraCompositeStore({
     id: 'composite-storage',
