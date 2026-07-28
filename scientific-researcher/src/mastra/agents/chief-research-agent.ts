@@ -131,4 +131,3 @@ For local workspace changes, end with a plain-text URL using ${pathToFileURL(`${
   signals: [new TaskSignalProvider()],
 });
 
-export const agent = chiefResearchAgent;

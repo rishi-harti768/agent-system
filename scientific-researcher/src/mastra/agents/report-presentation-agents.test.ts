@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'bun:test';
 import { Agent } from '@mastra/core/agent';
 
-import { agent as supervisorAgent } from './agent';
+import { chiefResearchAgent as supervisorAgent } from './chief-research-agent';
 import {
   reportGeneratorAgent,
   reportGeneratorOutputSchema,

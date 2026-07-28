@@ -1,5 +1,4 @@
 export * from './chief-research-agent';
-export * from './agent';
 export * from './paper-search-agent';
 export * from './citation-agent';
 export * from './summarization-agent';

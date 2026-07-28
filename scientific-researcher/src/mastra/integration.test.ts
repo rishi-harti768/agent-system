@@ -45,21 +45,16 @@ describe('Chief Research Agent & Mastra Integration', () => {
   });
 
   describe('Mastra Studio & Instance Integration', () => {
-    test('mastra instance is properly configured with agents and storage', () => {
+    test('mastra instance is properly configured with chiefResearchAgent', () => {
       expect(mastra).toBeInstanceOf(Mastra);
 
-      const registeredAgent = mastra.getAgent('chief-research-agent');
+      const registeredAgent = mastra.getAgent('chiefResearchAgent');
       expect(registeredAgent).toBeDefined();
       expect(registeredAgent.name).toBe('Chief Research Agent');
-
-      const namedAgent = mastra.getAgent('chiefResearchAgent');
-      expect(namedAgent).toBeDefined();
-
-      const legacyAgent = mastra.getAgent('agent');
-      expect(legacyAgent).toBeDefined();
+      expect(registeredAgent.id).toBe('chief-research-agent');
     });
 
-    test('end-to-end full research execution instructions & workflow structure', async () => {
+    test('end-to-end research prompt workflow execution readiness', async () => {
       const instructions = await chiefResearchAgent.getInstructions();
       expect(instructions).toContain('Phase 1: Literature Search');
       expect(instructions).toContain('Phase 2: Code & Dataset Discovery');
@@ -67,6 +62,13 @@ describe('Chief Research Agent & Mastra Integration', () => {
       expect(instructions).toContain('Phase 4: Output Artifact Generation');
       expect(instructions).toContain('RESEARCH_REPORT.md');
       expect(instructions).toContain('PRESENTATION.html');
+
+      // Verify that all tools required for research prompt execution are accessible
+      const tools = await chiefResearchAgent.listTools();
+      expect(tools.arxiv_search).toBeDefined();
+      expect(tools.python_sandbox).toBeDefined();
+      expect(tools.report_writer).toBeDefined();
+      expect(tools.presentation_writer).toBeDefined();
     });
   });
 });
