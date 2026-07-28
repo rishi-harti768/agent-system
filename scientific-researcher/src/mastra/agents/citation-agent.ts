@@ -4,9 +4,16 @@ import { z } from 'zod';
 
 import { semanticScholarSearchTool } from '../tools/semantic-scholar-tool';
 import { arxivSearchTool } from '../tools/arxiv-tool';
-import { basePaperMetadataSchema } from './schemas';
+import { basePaperMetadataSchema, DEFAULT_SUB_AGENT_MODEL } from './schemas';
 
-export const citationTreeNodeSchema: z.ZodType<any> = basePaperMetadataSchema.extend({
+export type CitationTreeNode = z.infer<typeof basePaperMetadataSchema> & {
+  isInfluential?: boolean;
+  depth?: number;
+  relation?: 'citing' | 'referenced' | 'foundational' | 'derivative';
+  children?: CitationTreeNode[];
+};
+
+export const citationTreeNodeSchema: z.ZodType<CitationTreeNode> = basePaperMetadataSchema.extend({
   isInfluential: z.boolean().optional(),
   depth: z.number().optional(),
   relation: z.enum(['citing', 'referenced', 'foundational', 'derivative']).optional(),
@@ -41,7 +48,7 @@ export const citationAgent = new Agent({
   instructions: `You are an expert Citation Analysis Agent.
 Your goal is to inspect citations and references of target papers to identify foundational works, key influential predecessors, and downstream derivative literature.
 Provide a clear analysis of citation graphs and highlight foundational papers shaping the field.`,
-  model: 'google/gemini-3.5-flash',
+  model: DEFAULT_SUB_AGENT_MODEL,
   tools: {
     semantic_scholar_search: semanticScholarSearchTool,
     arxiv_search: arxivSearchTool,
@@ -52,3 +59,4 @@ Provide a clear analysis of citation graphs and highlight foundational papers sh
     },
   },
 });
+

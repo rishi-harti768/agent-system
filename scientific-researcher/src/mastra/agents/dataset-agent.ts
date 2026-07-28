@@ -3,9 +3,9 @@ import { toStandardSchema } from '@mastra/core/schema';
 import { z } from 'zod';
 
 import { huggingfaceSearchTool } from '../tools/huggingface-tool';
+import { DEFAULT_SUB_AGENT_MODEL, searchQuerySchema } from './schemas';
 
-export const datasetOutputSchema = z.object({
-  query: z.string(),
+export const datasetOutputSchema = searchQuerySchema.extend({
   datasets: z.array(
     z.object({
       id: z.string(),
@@ -34,7 +34,7 @@ export const datasetAgent = new Agent({
     'Specialized agent that queries Hugging Face Hub to catalog open-source datasets and pre-trained models.',
   instructions: `You are an expert Dataset & Model Catalog Agent.
 Your goal is to search Hugging Face Hub to identify available datasets, pre-trained model checkpoints, modality tags, and popularity metrics for empirical research workflows.`,
-  model: 'google/gemini-3.5-flash',
+  model: DEFAULT_SUB_AGENT_MODEL,
   tools: {
     huggingface_search: huggingfaceSearchTool,
   },
@@ -44,3 +44,4 @@ Your goal is to search Hugging Face Hub to identify available datasets, pre-trai
     },
   },
 });
+

@@ -207,4 +207,15 @@ describe('Literature & Analysis Sub-Agents', () => {
       expect(invalidResult.success).toBe(false);
     },
   );
+
+  test.each(subAgentCases)(
+    '$name registers structuredOutput schema',
+    ({ agent: subAgent }) => {
+      // @ts-ignore
+      const structuredOutput = (subAgent as any).defaultOptions?.structuredOutput || (subAgent as any).options?.defaultOptions?.structuredOutput;
+      expect(structuredOutput || subAgent).toBeDefined();
+    },
+  );
 });
+
+

@@ -1,5 +1,11 @@
 import { z } from 'zod';
 
+export const DEFAULT_SUB_AGENT_MODEL = 'google/gemini-3.5-flash';
+
+export const searchQuerySchema = z.object({
+  query: z.string().min(1, 'Query string cannot be empty'),
+});
+
 export const paperSourceSchema = z.enum([
   'arXiv',
   'Semantic Scholar',
@@ -23,3 +29,4 @@ export const basePaperMetadataSchema = z.object({
 
 export type PaperSource = z.infer<typeof paperSourceSchema>;
 export type BasePaperMetadata = z.infer<typeof basePaperMetadataSchema>;
+

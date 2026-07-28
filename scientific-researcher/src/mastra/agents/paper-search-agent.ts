@@ -4,10 +4,14 @@ import { z } from 'zod';
 
 import { arxivSearchTool } from '../tools/arxiv-tool';
 import { semanticScholarSearchTool } from '../tools/semantic-scholar-tool';
-import { basePaperMetadataSchema, paperSourceSchema } from './schemas';
+import {
+  basePaperMetadataSchema,
+  DEFAULT_SUB_AGENT_MODEL,
+  paperSourceSchema,
+  searchQuerySchema,
+} from './schemas';
 
-export const paperSearchOutputSchema = z.object({
-  query: z.string(),
+export const paperSearchOutputSchema = searchQuerySchema.extend({
   totalFound: z.number(),
   papers: z.array(
     basePaperMetadataSchema.extend({
@@ -28,7 +32,7 @@ export const paperSearchAgent = new Agent({
   instructions: `You are an expert Literature Search Agent.
 Your goal is to search academic repositories (arXiv and Semantic Scholar) for high-quality research papers matching user topics or queries.
 Always return structured responses adhering to the required schema, organizing papers by relevance, citation count, and publication freshness.`,
-  model: 'google/gemini-3.5-flash',
+  model: DEFAULT_SUB_AGENT_MODEL,
   tools: {
     arxiv_search: arxivSearchTool,
     semantic_scholar_search: semanticScholarSearchTool,
@@ -39,3 +43,4 @@ Always return structured responses adhering to the required schema, organizing p
     },
   },
 });
+
