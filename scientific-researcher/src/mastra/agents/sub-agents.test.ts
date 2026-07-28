@@ -26,10 +26,22 @@ import {
   datasetAgent,
   datasetOutputSchema,
 } from './dataset-agent';
+import {
+  gapDetectionAgent,
+  gapDetectionOutputSchema,
+} from './gap-detection-agent';
+import {
+  noveltyCheckerAgent,
+  noveltyCheckerOutputSchema,
+} from './novelty-checker-agent';
+import {
+  experimentPlannerAgent,
+  experimentPlannerOutputSchema,
+} from './experiment-planner-agent';
 
 describe('Literature & Analysis Sub-Agents', () => {
   describe('Supervisor Agent Delegation', () => {
-    test('supervisor agent has all 6 sub-agents attached for delegation', async () => {
+    test('supervisor agent has all 9 sub-agents attached for delegation', async () => {
       expect(supervisorAgent).toBeInstanceOf(Agent);
       const subAgents = await supervisorAgent.listAgents();
       expect(subAgents).toHaveProperty('paperSearchAgent');
@@ -38,6 +50,9 @@ describe('Literature & Analysis Sub-Agents', () => {
       expect(subAgents).toHaveProperty('benchmarkAgent');
       expect(subAgents).toHaveProperty('githubCodeSearchAgent');
       expect(subAgents).toHaveProperty('datasetAgent');
+      expect(subAgents).toHaveProperty('gapDetectionAgent');
+      expect(subAgents).toHaveProperty('noveltyCheckerAgent');
+      expect(subAgents).toHaveProperty('experimentPlannerAgent');
     });
   });
 
@@ -178,6 +193,95 @@ describe('Literature & Analysis Sub-Agents', () => {
         models: [{ id: 'bert-base-uncased', downloads: 10000000 }],
       },
       invalidPayload: { query: 'test' },
+    },
+    {
+      name: 'gapDetectionAgent',
+      agent: gapDetectionAgent,
+      id: 'gap-detection-agent',
+      expectedName: 'Gap Detection Agent',
+      expectedTools: [
+        'arxiv_search',
+        'semantic_scholar_search',
+        'papers_with_code_search',
+      ],
+      schema: gapDetectionOutputSchema,
+      validPayload: {
+        topic: 'Transformer efficiency in long contexts',
+        identifiedGaps: [
+          {
+            gapTitle: 'Quadratic memory complexity in 100k+ sequence lengths',
+            description:
+              'Standard self-attention scales quadratically with length.',
+            severity: 'high',
+            affectedDomains: ['NLP', 'Long-document summarization'],
+            potentialApproach: 'Linear attention or state-space models',
+          },
+        ],
+        benchmarkDiscrepancies: [
+          {
+            benchmarkName: 'L-Eval',
+            observedLimitation:
+              'Evaluates retrieval but lacks reasoning depth.',
+            missingMetricOrTask: 'Multi-hop long-context reasoning',
+          },
+        ],
+        promisingDirections: [
+          'Hybrid state-space models with sparse attention',
+        ],
+      },
+      invalidPayload: { topic: '' },
+    },
+    {
+      name: 'noveltyCheckerAgent',
+      agent: noveltyCheckerAgent,
+      id: 'novelty-checker-agent',
+      expectedName: 'Novelty Checker Agent',
+      expectedTools: ['arxiv_search', 'semantic_scholar_search', 'web_fetch'],
+      schema: noveltyCheckerOutputSchema,
+      validPayload: {
+        proposedIdea: 'Linear attention with dynamic memory decaying factors',
+        noveltyScore: 8.5,
+        isNovel: true,
+        similarWork: [
+          {
+            title: 'Retention Mechanism in RetNet',
+            similarityAspect: 'Uses exponential decay state matrix.',
+            keyDifference:
+              'RetNet uses fixed decay while our idea adapts decay dynamically based on token content.',
+            url: 'https://arxiv.org/abs/2307.08621',
+          },
+        ],
+        differentiationPoints: [
+          'Content-dependent decay rates',
+          'Sub-quadratic training complexity',
+        ],
+        recommendations: ['Benchmark against RetNet and RWKV-6'],
+      },
+      invalidPayload: { proposedIdea: 'Test', noveltyScore: 15 },
+    },
+    {
+      name: 'experimentPlannerAgent',
+      agent: experimentPlannerAgent,
+      id: 'experiment-planner-agent',
+      expectedName: 'Experiment Planner Agent',
+      expectedTools: ['python_sandbox'],
+      schema: experimentPlannerOutputSchema,
+      validPayload: {
+        hypothesis: 'Dynamic decay reduces attention memory usage by 40%',
+        experimentDesign: {
+          objective: 'Compare memory usage of static vs dynamic decay',
+          variables: ['sequence length', 'decay rate'],
+          methodology: 'Benchmark tensor memory allocation in PyTorch',
+        },
+        code: 'import sys\nprint("Running experiment")\n',
+        executionResult: {
+          success: true,
+          stdout: 'Running experiment\n',
+          metrics: { memorySavedPercent: 42 },
+        },
+        conclusions: ['Hypothesis validated in initial synthetic tests'],
+      },
+      invalidPayload: { hypothesis: 'Test', experimentDesign: 'invalid' },
     },
   ];
 

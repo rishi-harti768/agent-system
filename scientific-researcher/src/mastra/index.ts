@@ -17,6 +17,9 @@ import {
   benchmarkAgent,
   githubCodeSearchAgent,
   datasetAgent,
+  gapDetectionAgent,
+  noveltyCheckerAgent,
+  experimentPlannerAgent,
 } from './agents';
 import { startScheduleTool, stopScheduleTool } from './tools/schedule-tools';
 import { webFetchTool } from './tools/web-fetch-tool';
@@ -36,6 +39,9 @@ export const mastra = new Mastra({
     benchmarkAgent,
     githubCodeSearchAgent,
     datasetAgent,
+    gapDetectionAgent,
+    noveltyCheckerAgent,
+    experimentPlannerAgent,
   },
   tools: {
     askUserTool,

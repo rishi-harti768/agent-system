@@ -5,3 +5,6 @@ export * from './summarization-agent';
 export * from './benchmark-agent';
 export * from './github-code-search-agent';
 export * from './dataset-agent';
+export * from './gap-detection-agent';
+export * from './novelty-checker-agent';
+export * from './experiment-planner-agent';

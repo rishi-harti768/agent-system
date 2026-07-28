@@ -21,6 +21,9 @@ import { summarizationAgent } from './summarization-agent';
 import { benchmarkAgent } from './benchmark-agent';
 import { githubCodeSearchAgent } from './github-code-search-agent';
 import { datasetAgent } from './dataset-agent';
+import { gapDetectionAgent } from './gap-detection-agent';
+import { noveltyCheckerAgent } from './novelty-checker-agent';
+import { experimentPlannerAgent } from './experiment-planner-agent';
 
 const workspacePath = 'workspace';
 
@@ -73,6 +76,9 @@ For local file changes, end with a plain-text URL using ${pathToFileURL(`${works
     benchmarkAgent,
     githubCodeSearchAgent,
     datasetAgent,
+    gapDetectionAgent,
+    noveltyCheckerAgent,
+    experimentPlannerAgent,
   },
   memory: new Memory({
     options: {
