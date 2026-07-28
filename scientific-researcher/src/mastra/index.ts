@@ -11,10 +11,20 @@ import {
 import { agent } from './agents/agent';
 import { startScheduleTool, stopScheduleTool } from './tools/schedule-tools';
 import { webFetchTool } from './tools/web-fetch-tool';
+import { arxivSearchTool } from './tools/arxiv-tool';
+import { semanticScholarSearchTool } from './tools/semantic-scholar-tool';
+import { papersWithCodeSearchTool } from './tools/papers-with-code-tool';
 
 export const mastra = new Mastra({
   agents: { agent },
-  tools: { startScheduleTool, stopScheduleTool, webFetchTool },
+  tools: {
+    startScheduleTool,
+    stopScheduleTool,
+    webFetchTool,
+    arxivSearchTool,
+    semanticScholarSearchTool,
+    papersWithCodeSearchTool,
+  },
   storage: new MastraCompositeStore({
     id: 'composite-storage',
     default: new LibSQLStore({
