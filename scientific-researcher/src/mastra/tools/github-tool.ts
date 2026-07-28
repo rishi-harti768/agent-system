@@ -1,5 +1,27 @@
 import { createTool } from '@mastra/core/tools';
 import { z } from 'zod';
+import { safeFetchJson } from './http-utils';
+
+interface GitHubSearchResponse {
+  items?: Array<{
+    name?: string;
+    full_name?: string;
+    description?: string | null;
+    html_url?: string;
+    stargazers_count?: number;
+    forks_count?: number;
+    language?: string | null;
+    repository?: {
+      name?: string;
+      full_name?: string;
+      description?: string | null;
+      html_url?: string;
+      stargazers_count?: number;
+      forks_count?: number;
+      language?: string | null;
+    };
+  }>;
+}
 
 export const githubSearchTool = createTool({
   id: 'github_search',
@@ -30,61 +52,11 @@ export const githubSearchTool = createTool({
     const endpoint = type === 'code' ? 'code' : 'repositories';
     const url = `https://api.github.com/search/${endpoint}?q=${formattedQuery}&per_page=${maxResults}`;
 
-    try {
-      const response = await fetch(url, {
-        headers: {
-          'User-Agent': 'Mastra Scientific Researcher Agent/1.0',
-          'Accept': 'application/vnd.github.v3+json',
-        },
-        signal: AbortSignal.timeout(15_000),
-      });
+    const data = await safeFetchJson<GitHubSearchResponse>(url, {
+      Accept: 'application/vnd.github.v3+json',
+    });
 
-      if (!response.ok) {
-        throw new Error(`GitHub API responded with status ${response.status}`);
-      }
-
-      const data = (await response.json()) as {
-        items?: Array<{
-          name?: string;
-          full_name?: string;
-          description?: string | null;
-          html_url?: string;
-          stargazers_count?: number;
-          forks_count?: number;
-          language?: string | null;
-          repository?: {
-            name?: string;
-            full_name?: string;
-            description?: string | null;
-            html_url?: string;
-            stargazers_count?: number;
-            forks_count?: number;
-            language?: string | null;
-          };
-        }>;
-      };
-
-      const rawItems = data.items || [];
-      const results = rawItems.map((item) => {
-        const repo = item.repository || item;
-        return {
-          name: repo.name || item.name || '',
-          fullName: repo.full_name || item.full_name || '',
-          description: repo.description || item.description || '',
-          url: item.html_url || repo.html_url || '',
-          stars: repo.stargazers_count ?? 0,
-          forks: repo.forks_count ?? 0,
-          language: repo.language || 'Unknown',
-        };
-      });
-
-      return {
-        query,
-        type,
-        count: results.length,
-        results,
-      };
-    } catch {
+    if (!data || !data.items) {
       return {
         query,
         type,
@@ -92,5 +64,25 @@ export const githubSearchTool = createTool({
         results: [],
       };
     }
+
+    const results = data.items.map((item) => {
+      const repo = item.repository || item;
+      return {
+        name: repo.name || item.name || '',
+        fullName: repo.full_name || item.full_name || '',
+        description: repo.description || item.description || '',
+        url: item.html_url || repo.html_url || '',
+        stars: repo.stargazers_count ?? 0,
+        forks: repo.forks_count ?? 0,
+        language: repo.language || 'Unknown',
+      };
+    });
+
+    return {
+      query,
+      type,
+      count: results.length,
+      results,
+    };
   },
 });

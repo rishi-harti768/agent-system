@@ -61,6 +61,20 @@ describe('Code, Dataset, and Execution Sandbox Tools', () => {
         language: 'Python',
       });
     });
+
+    it('handles GitHub API error status gracefully by returning empty results', async () => {
+      globalThis.fetch = mock(async () => {
+        return new Response('API Rate Limit Exceeded', { status: 403 });
+      }) as unknown as typeof globalThis.fetch;
+
+      const result = await (githubSearchTool.execute as Function)({
+        query: 'rate_limit_test',
+      });
+
+      expect(result.query).toBe('rate_limit_test');
+      expect(result.count).toBe(0);
+      expect(result.results).toEqual([]);
+    });
   });
 
   describe('huggingfaceSearchTool', () => {
@@ -111,6 +125,21 @@ describe('Code, Dataset, and Execution Sandbox Tools', () => {
         url: 'https://huggingface.co/meta-llama/Llama-3-8B',
         tags: ['text-generation', 'llama'],
       });
+    });
+
+    it('handles Hugging Face API errors gracefully', async () => {
+      globalThis.fetch = mock(async () => {
+        return new Response('Internal Server Error', { status: 500 });
+      }) as unknown as typeof globalThis.fetch;
+
+      const result = await (huggingfaceSearchTool.execute as Function)({
+        query: 'error_test',
+        type: 'datasets',
+      });
+
+      expect(result.query).toBe('error_test');
+      expect(result.count).toBe(0);
+      expect(result.results).toEqual([]);
     });
   });
 

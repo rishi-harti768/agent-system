@@ -2,6 +2,44 @@ import { createTool } from '@mastra/core/tools';
 import { z } from 'zod';
 import fs from 'node:fs';
 import path from 'node:path';
+
+let cachedPythonBinary: string | null = null;
+
+function resolvePythonBinary(): string | null {
+  if (cachedPythonBinary) {
+    return cachedPythonBinary;
+  }
+
+  const userProfile = process.env.USERPROFILE || process.env.HOME || '';
+  const rawCandidates = [
+    process.env.PYTHON_PATH,
+    'python',
+    'python3',
+    'py',
+    path.join(userProfile, '.local', 'bin', 'python.exe'),
+    path.join(userProfile, '.local', 'bin', 'python'),
+  ];
+
+  const candidateBinaries = rawCandidates.filter((b): b is string => {
+    if (!b) return false;
+    return !b.includes(path.sep) || fs.existsSync(b);
+  });
+
+  for (const binary of candidateBinaries) {
+    try {
+      const check = Bun.spawnSync([binary, '--version']);
+      if (check.exitCode === 0) {
+        cachedPythonBinary = binary;
+        return binary;
+      }
+    } catch {
+      // Try next binary candidate
+    }
+  }
+
+  return null;
+}
+
 export const pythonSandboxTool = createTool({
   id: 'python_sandbox',
   description: 'Execute Python code safely inside an isolated local sandbox directory with strict execution timeout guards.',
@@ -37,53 +75,44 @@ export const pythonSandboxTool = createTool({
         fs.mkdirSync(sandboxDir, { recursive: true });
       }
 
-      const safeFilename = path.basename(filename).replace(/[^a-zA-Z0-9_.-]/g, '_') || 'script.py';
-      const filePath = path.join(sandboxDir, safeFilename);
+      // Enforce strict path isolation within sandboxDir
+      const safeBasename = path.basename(filename).replace(/[^a-zA-Z0-9_.-]/g, '_') || 'script.py';
+      const filePath = path.resolve(sandboxDir, safeBasename);
 
       fs.writeFileSync(filePath, code, 'utf-8');
 
-      const userProfile = process.env.USERPROFILE || process.env.HOME || '';
-      const rawCandidates = [
-        process.env.PYTHON_PATH,
-        'python',
-        'python3',
-        'py',
-        path.join(userProfile, '.local', 'bin', 'python.exe'),
-        path.join(userProfile, '.local', 'bin', 'python'),
-      ];
-
-      const candidateBinaries = rawCandidates.filter((b): b is string => {
-        if (!b) return false;
-        return !b.includes(path.sep) || fs.existsSync(b);
-      });
-
-      let proc: any = null;
-      let lastError: unknown = null;
-
-      for (const binary of candidateBinaries) {
-        try {
-          proc = Bun.spawn([binary, filePath], {
-            cwd: sandboxDir,
-            stdout: 'pipe',
-            stderr: 'pipe',
-          });
-          if (proc) break;
-        } catch (err) {
-          lastError = err;
-        }
-      }
-
-      if (!proc) {
+      const binary = resolvePythonBinary();
+      if (!binary) {
         const executionTimeMs = Date.now() - startTime;
-        const errDetail = lastError instanceof Error ? lastError.message : String(lastError);
         return {
           success: false,
           exitCode: null,
           stdout: '',
-          stderr: `Failed to spawn Python process: ${errDetail}`,
+          stderr: 'Python executable not found in PATH or environment.',
           timedOut: false,
           executionTimeMs,
-          error: `Failed to spawn Python process: ${errDetail}`,
+          error: 'Python executable not found in PATH or environment.',
+        };
+      }
+
+      let proc: any = null;
+      try {
+        proc = Bun.spawn([binary, filePath], {
+          cwd: sandboxDir,
+          stdout: 'pipe',
+          stderr: 'pipe',
+        });
+      } catch (spawnErr) {
+        const executionTimeMs = Date.now() - startTime;
+        const errDetail = spawnErr instanceof Error ? spawnErr.message : String(spawnErr);
+        return {
+          success: false,
+          exitCode: null,
+          stdout: '',
+          stderr: `Failed to spawn process: ${errDetail}`,
+          timedOut: false,
+          executionTimeMs,
+          error: `Failed to spawn process: ${errDetail}`,
         };
       }
 
@@ -94,9 +123,9 @@ export const pythonSandboxTool = createTool({
         timer = setTimeout(() => {
           timedOut = true;
           try {
-            proc.kill();
+            proc.kill(9); // SIGKILL to ensure process stdio pipes close immediately
           } catch {
-            // Ignore kill errors if process already exited
+            // Ignore kill errors if already terminated
           }
           resolve('timeout');
         }, effectiveTimeout);

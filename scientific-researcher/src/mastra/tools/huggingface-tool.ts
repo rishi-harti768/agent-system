@@ -1,5 +1,14 @@
 import { createTool } from '@mastra/core/tools';
 import { z } from 'zod';
+import { safeFetchJson } from './http-utils';
+
+interface HuggingFaceItem {
+  id?: string;
+  modelId?: string;
+  downloads?: number;
+  likes?: number;
+  tags?: string[];
+}
 
 export const huggingfaceSearchTool = createTool({
   id: 'huggingface_search',
@@ -29,47 +38,9 @@ export const huggingfaceSearchTool = createTool({
     const endpoint = type === 'datasets' ? 'datasets' : 'models';
     const url = `https://huggingface.co/api/${endpoint}?search=${formattedQuery}&limit=${maxResults}`;
 
-    try {
-      const response = await fetch(url, {
-        headers: {
-          'User-Agent': 'Mastra Scientific Researcher Agent/1.0',
-        },
-        signal: AbortSignal.timeout(15_000),
-      });
+    const items = await safeFetchJson<HuggingFaceItem[]>(url);
 
-      if (!response.ok) {
-        throw new Error(`Hugging Face API responded with status ${response.status}`);
-      }
-
-      const items = (await response.json()) as Array<{
-        id?: string;
-        modelId?: string;
-        downloads?: number;
-        likes?: number;
-        tags?: string[];
-      }>;
-
-      const rawItems = Array.isArray(items) ? items : [];
-      const results = rawItems.slice(0, maxResults).map((item) => {
-        const itemId = item.id || item.modelId || '';
-        const baseUrl = type === 'datasets' ? 'https://huggingface.co/datasets' : 'https://huggingface.co';
-        return {
-          id: itemId,
-          name: itemId,
-          downloads: item.downloads ?? 0,
-          likes: item.likes ?? 0,
-          url: `${baseUrl}/${itemId}`,
-          tags: Array.isArray(item.tags) ? item.tags : [],
-        };
-      });
-
-      return {
-        query,
-        type,
-        count: results.length,
-        results,
-      };
-    } catch {
+    if (!items || !Array.isArray(items)) {
       return {
         query,
         type,
@@ -77,5 +48,25 @@ export const huggingfaceSearchTool = createTool({
         results: [],
       };
     }
+
+    const results = items.slice(0, maxResults).map((item) => {
+      const itemId = item.id || item.modelId || '';
+      const baseUrl = type === 'datasets' ? 'https://huggingface.co/datasets' : 'https://huggingface.co';
+      return {
+        id: itemId,
+        name: itemId,
+        downloads: item.downloads ?? 0,
+        likes: item.likes ?? 0,
+        url: `${baseUrl}/${itemId}`,
+        tags: Array.isArray(item.tags) ? item.tags : [],
+      };
+    });
+
+    return {
+      query,
+      type,
+      count: results.length,
+      results,
+    };
   },
 });
