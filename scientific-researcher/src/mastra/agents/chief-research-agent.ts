@@ -17,6 +17,7 @@ import { huggingfaceSearchTool } from '../tools/huggingface-tool';
 import { pythonSandboxTool } from '../tools/python-sandbox-tool';
 import { reportWriterTool } from '../tools/report-writer-tool';
 import { presentationWriterTool } from '../tools/presentation-writer-tool';
+
 import { paperSearchAgent } from './paper-search-agent';
 import { citationAgent } from './citation-agent';
 import { summarizationAgent } from './summarization-agent';
@@ -53,20 +54,37 @@ const workspace = new Workspace({
   },
 });
 
-export const agent = new Agent({
-  id: 'agent',
-  name: 'Agent',
+export const chiefResearchAgent = new Agent({
+  id: 'chief-research-agent',
+  name: 'Chief Research Agent',
   description:
-    'A general-purpose assistant that can research, manage tasks, work with local files, run approved commands, and create recurring schedules.',
-  instructions: `You are a friendly starter agent for exploring what Mastra can do. Help the user try useful capabilities, build small projects, answer current questions, and shape this harness into a starting point for future work.
+    'Central Supervisor Agent orchestrating autonomous scientific research workflows across 11 specialized sub-agents.',
+  instructions: `You are the Chief Research Agent, the central supervisor of an Autonomous Scientific Researcher system.
+Your mission is to execute end-to-end scientific literature discovery, citation analysis, benchmark comparison, open-source code & dataset mapping, research gap identification, novelty checking, verification experiment execution, and report/presentation generation.
 
-Suggested prompts: Get the weather forecast for your city; Create a Japanese Sakura festival page; Tell me the SPCX stock price now, then every minute.
+Follow this 4-phase research execution plan when given a research topic or query:
 
-When the user greets you or does not have a specific task, invite them to try the suggested prompts.
+1. **Phase 1: Literature Search, Citations & Benchmarks**
+   - Delegate to \`paperSearchAgent\` to search arXiv and Semantic Scholar for literature.
+   - Delegate to \`citationAgent\` to build citation trees and identify foundational papers.
+   - Delegate to \`summarizationAgent\` to condense paper abstracts, contributions, and limitations.
+   - Delegate to \`benchmarkAgent\` to extract SOTA metrics and leaderboards from Papers with Code.
 
-Ask concise questions when something is unclear or a good question could surface a useful insight.
+2. **Phase 2: Code & Dataset Discovery**
+   - Delegate to \`githubCodeSearchAgent\` to locate open-source PyTorch/TensorFlow repositories.
+   - Delegate to \`datasetAgent\` to map Hugging Face Hub datasets and pretrained models.
 
-For local file changes, end with a plain-text URL using ${pathToFileURL(`${workspacePath}/`).href}; avoid Markdown links, localhost, /workspace, relative paths, and static-file servers.
+3. **Phase 3: Synthesis, Novelty & Verification**
+   - Delegate to \`gapDetectionAgent\` to synthesize retrieved literature and pinpoint unaddressed gaps.
+   - Delegate to \`noveltyCheckerAgent\` to score proposed ideas against prior art.
+   - Delegate to \`experimentPlannerAgent\` to design verification code and execute it in the Python sandbox (\`python_sandbox\`).
+
+4. **Phase 4: Output Artifact Generation**
+   - Delegate to \`reportGeneratorAgent\` and execute \`report_writer\` to generate \`RESEARCH_REPORT.md\`.
+   - Delegate to \`presentationAgent\` and execute \`presentation_writer\` to build interactive \`PRESENTATION.html\`.
+
+Ask concise clarifying questions when needed. Provide clear summaries of generated artifacts.
+For local workspace changes, end with a plain-text URL using ${pathToFileURL(`${workspacePath}/`).href}.
 `,
   model: 'google/gemini-3.5-flash',
   defaultOptions: {
@@ -112,3 +130,4 @@ For local file changes, end with a plain-text URL using ${pathToFileURL(`${works
   },
   signals: [new TaskSignalProvider()],
 });
+

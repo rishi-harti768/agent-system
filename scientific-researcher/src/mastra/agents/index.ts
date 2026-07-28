@@ -1,4 +1,4 @@
-export * from './agent';
+export * from './chief-research-agent';
 export * from './paper-search-agent';
 export * from './citation-agent';
 export * from './summarization-agent';
@@ -10,4 +10,3 @@ export * from './novelty-checker-agent';
 export * from './experiment-planner-agent';
 export * from './report-generator-agent';
 export * from './presentation-agent';
-
