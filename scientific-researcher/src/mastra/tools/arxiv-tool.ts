@@ -44,7 +44,7 @@ export const arxivSearchTool = createTool({
         count: results.length,
         results,
       };
-    } catch (err: any) {
+    } catch {
       return {
         query,
         count: 0,

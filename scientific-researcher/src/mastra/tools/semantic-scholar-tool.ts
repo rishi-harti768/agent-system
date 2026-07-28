@@ -1,6 +1,18 @@
 import { createTool } from '@mastra/core/tools';
 import { z } from 'zod';
 
+export interface SemanticScholarPaper {
+  paperId?: string;
+  title?: string;
+  abstract?: string | null;
+  authors?: Array<{ name?: string }>;
+  citationCount?: number;
+  influentialCitationCount?: number;
+  url?: string;
+  citations?: Array<{ paperId?: string; title?: string }>;
+  references?: Array<{ paperId?: string; title?: string }>;
+}
+
 export const semanticScholarSearchTool = createTool({
   id: 'semantic_scholar_search',
   description: 'Search Semantic Scholar for academic paper details, citation graphs, and citation metrics.',
@@ -40,22 +52,22 @@ export const semanticScholarSearchTool = createTool({
         throw new Error(`Semantic Scholar API responded with status ${response.status}`);
       }
 
-      const data: any = await response.json();
-      const rawResults = data?.data || [];
+      const data = (await response.json()) as { data?: SemanticScholarPaper[] };
+      const rawResults = data.data || [];
 
-      const results = rawResults.map((paper: any) => ({
+      const results = rawResults.map((paper: SemanticScholarPaper) => ({
         paperId: paper.paperId || '',
         title: paper.title || '',
         abstract: paper.abstract || null,
-        authors: Array.isArray(paper.authors) ? paper.authors.map((a: any) => a.name) : [],
+        authors: Array.isArray(paper.authors) ? paper.authors.map((author) => author.name || '') : [],
         citationCount: typeof paper.citationCount === 'number' ? paper.citationCount : 0,
         influentialCitationCount: typeof paper.influentialCitationCount === 'number' ? paper.influentialCitationCount : 0,
         url: paper.url || `https://www.semanticscholar.org/paper/${paper.paperId}`,
         citations: Array.isArray(paper.citations)
-          ? paper.citations.map((c: any) => ({ paperId: c.paperId || '', title: c.title || '' }))
+          ? paper.citations.map((citation) => ({ paperId: citation.paperId || '', title: citation.title || '' }))
           : [],
         references: Array.isArray(paper.references)
-          ? paper.references.map((r: any) => ({ paperId: r.paperId || '', title: r.title || '' }))
+          ? paper.references.map((reference) => ({ paperId: reference.paperId || '', title: reference.title || '' }))
           : [],
       }));
 
@@ -64,7 +76,7 @@ export const semanticScholarSearchTool = createTool({
         count: results.length,
         results,
       };
-    } catch (err: any) {
+    } catch {
       return {
         query,
         count: 0,

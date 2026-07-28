@@ -1,6 +1,33 @@
 import { createTool } from '@mastra/core/tools';
 import { z } from 'zod';
 
+export interface PapersWithCodeItem {
+  id?: string;
+  title?: string;
+  abstract?: string;
+  url_pdf?: string;
+  url?: string;
+  repo_url?: string;
+  paper?: {
+    id?: string;
+    title?: string;
+    abstract?: string;
+    url_pdf?: string;
+    url?: string;
+  };
+  repository?: {
+    url?: string;
+  };
+  tasks?: Array<{ name?: string } | string>;
+  methods?: Array<{ name?: string } | string>;
+  evaluations?: Array<{
+    task?: string | { name?: string };
+    dataset?: string | { name?: string };
+    metric_name?: string;
+    metric_value?: string | number;
+  }>;
+}
+
 export const papersWithCodeSearchTool = createTool({
   id: 'papers_with_code_search',
   description: 'Search Papers with Code for evaluation metrics, SOTA benchmarks, and code repository links.',
@@ -20,6 +47,14 @@ export const papersWithCodeSearchTool = createTool({
         repoUrl: z.string().optional(),
         tasks: z.array(z.string()).optional(),
         methods: z.array(z.string()).optional(),
+        benchmarks: z.array(
+          z.object({
+            task: z.string().optional(),
+            dataset: z.string().optional(),
+            metric: z.string().optional(),
+            value: z.string().optional(),
+          })
+        ).optional(),
       })
     ),
   }),
@@ -37,20 +72,39 @@ export const papersWithCodeSearchTool = createTool({
         throw new Error(`Papers with Code API responded with status ${response.status}`);
       }
 
-      const data: any = await response.json();
-      const rawResults = data?.results || [];
+      const data = (await response.json()) as { results?: PapersWithCodeItem[] };
+      const rawResults = data.results || [];
 
-      const results = rawResults.slice(0, limit).map((item: any) => {
+      const results = rawResults.slice(0, limit).map((item: PapersWithCodeItem) => {
         const paperObj = item.paper || item;
         const repoObj = item.repository || {};
+
+        const tasks = Array.isArray(item.tasks)
+          ? item.tasks.map((taskItem) => (typeof taskItem === 'string' ? taskItem : taskItem.name || ''))
+          : [];
+
+        const methods = Array.isArray(item.methods)
+          ? item.methods.map((methodItem) => (typeof methodItem === 'string' ? methodItem : methodItem.name || ''))
+          : [];
+
+        const benchmarks = Array.isArray(item.evaluations)
+          ? item.evaluations.map((evalItem) => ({
+              task: typeof evalItem.task === 'object' ? evalItem.task?.name || '' : evalItem.task || '',
+              dataset: typeof evalItem.dataset === 'object' ? evalItem.dataset?.name || '' : evalItem.dataset || '',
+              metric: evalItem.metric_name || '',
+              value: evalItem.metric_value != null ? String(evalItem.metric_value) : '',
+            }))
+          : [];
+
         return {
           id: paperObj.id || item.id || '',
           title: paperObj.title || item.title || '',
           abstract: paperObj.abstract || item.abstract || '',
           paperUrl: paperObj.url_pdf || paperObj.url || '',
           repoUrl: repoObj.url || item.repo_url || '',
-          tasks: Array.isArray(item.tasks) ? item.tasks.map((t: any) => t.name || t) : [],
-          methods: Array.isArray(item.methods) ? item.methods.map((m: any) => m.name || m) : [],
+          tasks,
+          methods,
+          benchmarks,
         };
       });
 
@@ -59,7 +113,7 @@ export const papersWithCodeSearchTool = createTool({
         count: results.length,
         results,
       };
-    } catch (err: any) {
+    } catch {
       return {
         query,
         count: 0,

@@ -33,7 +33,7 @@ describe('Academic Data Tools', () => {
         });
       }) as typeof fetch;
 
-      const result: any = await (arxivSearchTool.execute as any)({
+      const result = await (arxivSearchTool.execute as Function)({
         query: 'Transformer',
         maxResults: 1,
       });
@@ -71,7 +71,7 @@ describe('Academic Data Tools', () => {
         });
       }) as typeof fetch;
 
-      const result: any = await (semanticScholarSearchTool.execute as any)({
+      const result = await (semanticScholarSearchTool.execute as Function)({
         query: 'ResNet',
         limit: 1,
       });
@@ -86,7 +86,7 @@ describe('Academic Data Tools', () => {
   });
 
   describe('papersWithCodeSearchTool', () => {
-    it('fetches search results and benchmarks from Papers with Code', async () => {
+    it('fetches search results, tasks, and benchmark evaluation metrics from Papers with Code', async () => {
       const mockJsonResponse = {
         count: 1,
         results: [
@@ -103,6 +103,14 @@ describe('Academic Data Tools', () => {
             },
             tasks: [{ name: 'Language Modelling' }],
             methods: [{ name: 'Transformer' }],
+            evaluations: [
+              {
+                task: { name: 'MMLU Benchmark' },
+                dataset: 'MMLU',
+                metric_name: 'Accuracy',
+                metric_value: 86.4,
+              },
+            ],
           },
         ],
       };
@@ -114,7 +122,7 @@ describe('Academic Data Tools', () => {
         });
       }) as typeof fetch;
 
-      const result: any = await (papersWithCodeSearchTool.execute as any)({
+      const result = await (papersWithCodeSearchTool.execute as Function)({
         query: 'GPT-4',
         limit: 1,
       });
@@ -124,7 +132,12 @@ describe('Academic Data Tools', () => {
       expect(result.results[0].title).toBe('GPT-4 Technical Report');
       expect(result.results[0].repoUrl).toBe('https://github.com/openai/gpt-4');
       expect(result.results[0].tasks).toEqual(['Language Modelling']);
+      expect(result.results[0].benchmarks?.[0]).toEqual({
+        task: 'MMLU Benchmark',
+        dataset: 'MMLU',
+        metric: 'Accuracy',
+        value: '86.4',
+      });
     });
   });
 });
-
