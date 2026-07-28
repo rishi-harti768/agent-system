@@ -8,3 +8,6 @@ export * from './dataset-agent';
 export * from './gap-detection-agent';
 export * from './novelty-checker-agent';
 export * from './experiment-planner-agent';
+export * from './report-generator-agent';
+export * from './presentation-agent';
+

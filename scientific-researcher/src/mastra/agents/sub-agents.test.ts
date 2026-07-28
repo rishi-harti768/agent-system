@@ -41,7 +41,7 @@ import {
 
 describe('Literature & Analysis Sub-Agents', () => {
   describe('Supervisor Agent Delegation', () => {
-    test('supervisor agent has all 9 sub-agents attached for delegation', async () => {
+    test('supervisor agent has all 11 sub-agents attached for delegation', async () => {
       expect(supervisorAgent).toBeInstanceOf(Agent);
       const subAgents = await supervisorAgent.listAgents();
       expect(subAgents).toHaveProperty('paperSearchAgent');
@@ -53,6 +53,8 @@ describe('Literature & Analysis Sub-Agents', () => {
       expect(subAgents).toHaveProperty('gapDetectionAgent');
       expect(subAgents).toHaveProperty('noveltyCheckerAgent');
       expect(subAgents).toHaveProperty('experimentPlannerAgent');
+      expect(subAgents).toHaveProperty('reportGeneratorAgent');
+      expect(subAgents).toHaveProperty('presentationAgent');
     });
   });
 

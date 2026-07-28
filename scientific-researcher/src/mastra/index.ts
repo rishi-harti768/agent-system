@@ -20,6 +20,8 @@ import {
   gapDetectionAgent,
   noveltyCheckerAgent,
   experimentPlannerAgent,
+  reportGeneratorAgent,
+  presentationAgent,
 } from './agents';
 import { startScheduleTool, stopScheduleTool } from './tools/schedule-tools';
 import { webFetchTool } from './tools/web-fetch-tool';
@@ -29,6 +31,8 @@ import { papersWithCodeSearchTool } from './tools/papers-with-code-tool';
 import { githubSearchTool } from './tools/github-tool';
 import { huggingfaceSearchTool } from './tools/huggingface-tool';
 import { pythonSandboxTool } from './tools/python-sandbox-tool';
+import { reportWriterTool } from './tools/report-writer-tool';
+import { presentationWriterTool } from './tools/presentation-writer-tool';
 
 export const mastra = new Mastra({
   agents: {
@@ -42,6 +46,8 @@ export const mastra = new Mastra({
     gapDetectionAgent,
     noveltyCheckerAgent,
     experimentPlannerAgent,
+    reportGeneratorAgent,
+    presentationAgent,
   },
   tools: {
     askUserTool,
@@ -54,6 +60,8 @@ export const mastra = new Mastra({
     githubSearchTool,
     huggingfaceSearchTool,
     pythonSandboxTool,
+    reportWriterTool,
+    presentationWriterTool,
   },
   storage: new MastraCompositeStore({
     id: 'composite-storage',
