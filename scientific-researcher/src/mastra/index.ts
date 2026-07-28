@@ -9,7 +9,15 @@ import {
   SensitiveDataFilter,
 } from '@mastra/observability';
 import { askUserTool } from '@mastra/core/tools';
-import { agent } from './agents/agent';
+import {
+  agent,
+  paperSearchAgent,
+  citationAgent,
+  summarizationAgent,
+  benchmarkAgent,
+  githubCodeSearchAgent,
+  datasetAgent,
+} from './agents';
 import { startScheduleTool, stopScheduleTool } from './tools/schedule-tools';
 import { webFetchTool } from './tools/web-fetch-tool';
 import { arxivSearchTool } from './tools/arxiv-tool';
@@ -20,7 +28,15 @@ import { huggingfaceSearchTool } from './tools/huggingface-tool';
 import { pythonSandboxTool } from './tools/python-sandbox-tool';
 
 export const mastra = new Mastra({
-  agents: { agent },
+  agents: {
+    agent,
+    paperSearchAgent,
+    citationAgent,
+    summarizationAgent,
+    benchmarkAgent,
+    githubCodeSearchAgent,
+    datasetAgent,
+  },
   tools: {
     askUserTool,
     startScheduleTool,

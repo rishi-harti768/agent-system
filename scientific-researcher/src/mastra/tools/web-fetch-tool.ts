@@ -5,7 +5,7 @@ export const webFetchTool = createTool({
   id: 'web_fetch',
   description: 'Fetch a web page by URL and return text content with basic response metadata.',
   inputSchema: z.object({
-    url: z.url().describe('The fully qualified URL to fetch.'),
+    url: z.string().url().describe('The fully qualified URL to fetch.'),
   }),
   outputSchema: z.object({
     url: z.string(),
