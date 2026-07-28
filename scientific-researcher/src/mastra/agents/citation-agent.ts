@@ -1,34 +1,34 @@
 import { Agent } from '@mastra/core/agent';
+import { toStandardSchema } from '@mastra/core/schema';
 import { z } from 'zod';
 
 import { semanticScholarSearchTool } from '../tools/semantic-scholar-tool';
 import { arxivSearchTool } from '../tools/arxiv-tool';
+import { basePaperMetadataSchema } from './schemas';
+
+export const citationTreeNodeSchema: z.ZodType<any> = basePaperMetadataSchema.extend({
+  isInfluential: z.boolean().optional(),
+  depth: z.number().optional(),
+  relation: z.enum(['citing', 'referenced', 'foundational', 'derivative']).optional(),
+  children: z.array(z.lazy(() => citationTreeNodeSchema)).optional(),
+});
 
 export const citationOutputSchema = z.object({
   targetPaperId: z.string(),
   title: z.string(),
-  citations: z.array(
-    z.object({
-      paperId: z.string().optional(),
-      title: z.string(),
-      year: z.number().nullable().optional(),
-      citationCount: z.number().nullable().optional(),
-    }),
-  ),
-  references: z.array(
-    z.object({
-      paperId: z.string().optional(),
-      title: z.string(),
-      year: z.number().nullable().optional(),
-    }),
-  ),
+  totalCitations: z.number().optional(),
+  influentialCitationsCount: z.number().optional(),
+  citations: z.array(citationTreeNodeSchema),
+  references: z.array(citationTreeNodeSchema),
   foundationalPapers: z.array(
     z.object({
       title: z.string(),
       reason: z.string(),
       influenceScore: z.number().optional(),
+      citationCount: z.number().optional(),
     }),
   ),
+  citationTree: z.array(citationTreeNodeSchema).optional(),
 });
 
 export type CitationOutput = z.infer<typeof citationOutputSchema>;
@@ -45,5 +45,10 @@ Provide a clear analysis of citation graphs and highlight foundational papers sh
   tools: {
     semantic_scholar_search: semanticScholarSearchTool,
     arxiv_search: arxivSearchTool,
+  },
+  defaultOptions: {
+    structuredOutput: {
+      schema: toStandardSchema(citationOutputSchema),
+    },
   },
 });

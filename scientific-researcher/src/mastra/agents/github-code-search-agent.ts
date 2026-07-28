@@ -1,4 +1,5 @@
 import { Agent } from '@mastra/core/agent';
+import { toStandardSchema } from '@mastra/core/schema';
 import { z } from 'zod';
 
 import { githubSearchTool } from '../tools/github-tool';
@@ -32,5 +33,10 @@ Your goal is to locate open-source implementations, official research codebases,
   model: 'google/gemini-3.5-flash',
   tools: {
     github_search: githubSearchTool,
+  },
+  defaultOptions: {
+    structuredOutput: {
+      schema: toStandardSchema(githubCodeSearchOutputSchema),
+    },
   },
 });

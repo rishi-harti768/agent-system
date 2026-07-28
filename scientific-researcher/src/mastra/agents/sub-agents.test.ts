@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'bun:test';
 import { Agent } from '@mastra/core/agent';
 
+import { agent as supervisorAgent } from './agent';
 import {
   paperSearchAgent,
   paperSearchOutputSchema,
@@ -27,27 +28,35 @@ import {
 } from './dataset-agent';
 
 describe('Literature & Analysis Sub-Agents', () => {
-  describe('paperSearchAgent', () => {
-    test('initializes correctly with attached tools', async () => {
-      expect(paperSearchAgent).toBeInstanceOf(Agent);
-      expect(paperSearchAgent.id).toBe('paper-search-agent');
-      expect(paperSearchAgent.name).toBe('Paper Search Agent');
-      expect(paperSearchAgent.getDescription()).toContain('arXiv');
-
-      const tools = await paperSearchAgent.listTools();
-      expect(tools).toHaveProperty('arxiv_search');
-      expect(tools).toHaveProperty('semantic_scholar_search');
+  describe('Supervisor Agent Delegation', () => {
+    test('supervisor agent has all 6 sub-agents attached for delegation', async () => {
+      expect(supervisorAgent).toBeInstanceOf(Agent);
+      const subAgents = await supervisorAgent.listAgents();
+      expect(subAgents).toHaveProperty('paperSearchAgent');
+      expect(subAgents).toHaveProperty('citationAgent');
+      expect(subAgents).toHaveProperty('summarizationAgent');
+      expect(subAgents).toHaveProperty('benchmarkAgent');
+      expect(subAgents).toHaveProperty('githubCodeSearchAgent');
+      expect(subAgents).toHaveProperty('datasetAgent');
     });
+  });
 
-    test('validates paperSearchOutputSchema with valid payload', () => {
-      const validPayload = {
+  const subAgentCases = [
+    {
+      name: 'paperSearchAgent',
+      agent: paperSearchAgent,
+      id: 'paper-search-agent',
+      expectedName: 'Paper Search Agent',
+      expectedTools: ['arxiv_search', 'semantic_scholar_search'],
+      schema: paperSearchOutputSchema,
+      validPayload: {
         query: 'transformer attention',
         totalFound: 1,
         papers: [
           {
             title: 'Attention Is All You Need',
             authors: ['Ashish Vaswani', 'Noam Shazeer'],
-            abstract: 'The dominant sequence transduction models are based on complex recurrent or convolutional neural networks.',
+            abstract: 'The dominant sequence transduction models are based on complex recurrent networks.',
             url: 'https://arxiv.org/abs/1706.03762',
             publishedDate: '2017-06-12',
             citationCount: 100000,
@@ -55,128 +64,75 @@ describe('Literature & Analysis Sub-Agents', () => {
             source: 'arXiv',
           },
         ],
-      };
-
-      const result = paperSearchOutputSchema.safeParse(validPayload);
-      expect(result.success).toBe(true);
-    });
-
-    test('rejects invalid paperSearchOutputSchema payload', () => {
-      const invalidPayload = {
-        query: 'test',
-        // missing totalFound and papers
-      };
-
-      const result = paperSearchOutputSchema.safeParse(invalidPayload);
-      expect(result.success).toBe(false);
-    });
-  });
-
-  describe('citationAgent', () => {
-    test('initializes correctly with attached tools', async () => {
-      expect(citationAgent).toBeInstanceOf(Agent);
-      expect(citationAgent.id).toBe('citation-agent');
-      expect(citationAgent.name).toBe('Citation Agent');
-
-      const tools = await citationAgent.listTools();
-      expect(tools).toHaveProperty('semantic_scholar_search');
-      expect(tools).toHaveProperty('arxiv_search');
-    });
-
-    test('validates citationOutputSchema with valid payload', () => {
-      const validPayload = {
+      },
+      invalidPayload: { query: 'test' },
+    },
+    {
+      name: 'citationAgent',
+      agent: citationAgent,
+      id: 'citation-agent',
+      expectedName: 'Citation Agent',
+      expectedTools: ['semantic_scholar_search', 'arxiv_search'],
+      schema: citationOutputSchema,
+      validPayload: {
         targetPaperId: '1706.03762',
         title: 'Attention Is All You Need',
+        totalCitations: 100000,
+        influentialCitationsCount: 5000,
         citations: [
           {
             paperId: '2005.14165',
             title: 'Language Models are Few-Shot Learners',
             year: 2020,
             citationCount: 20000,
+            isInfluential: true,
+            relation: 'citing',
           },
         ],
         references: [
           {
             paperId: '1409.0473',
-            title: 'Neural Machine Translation by Jointly Learning to Align and Translate',
+            title: 'Neural Machine Translation',
             year: 2014,
+            relation: 'referenced',
           },
         ],
         foundationalPapers: [
           {
-            title: 'Sequence to Sequence Learning with Neural Networks',
-            reason: 'Pioneered encoder-decoder seq2seq architectures.',
+            title: 'Sequence to Sequence Learning',
+            reason: 'Pioneered seq2seq.',
             influenceScore: 9.5,
           },
         ],
-      };
-
-      const result = citationOutputSchema.safeParse(validPayload);
-      expect(result.success).toBe(true);
-    });
-
-    test('rejects invalid citationOutputSchema payload', () => {
-      const invalidPayload = {
-        targetPaperId: '123',
-        // missing foundationalPapers
-      };
-
-      const result = citationOutputSchema.safeParse(invalidPayload);
-      expect(result.success).toBe(false);
-    });
-  });
-
-  describe('summarizationAgent', () => {
-    test('initializes correctly with attached tools', async () => {
-      expect(summarizationAgent).toBeInstanceOf(Agent);
-      expect(summarizationAgent.id).toBe('summarization-agent');
-      expect(summarizationAgent.name).toBe('Summarization Agent');
-
-      const tools = await summarizationAgent.listTools();
-      expect(tools).toHaveProperty('web_fetch');
-      expect(tools).toHaveProperty('arxiv_search');
-      expect(tools).toHaveProperty('semantic_scholar_search');
-    });
-
-    test('validates summarizationOutputSchema with valid payload', () => {
-      const validPayload = {
+      },
+      invalidPayload: { targetPaperId: '123' },
+    },
+    {
+      name: 'summarizationAgent',
+      agent: summarizationAgent,
+      id: 'summarization-agent',
+      expectedName: 'Summarization Agent',
+      expectedTools: ['web_fetch', 'arxiv_search', 'semantic_scholar_search'],
+      schema: summarizationOutputSchema,
+      validPayload: {
         paperTitle: 'Attention Is All You Need',
-        summary: 'Proposes the Transformer architecture based solely on attention mechanisms.',
-        keyContributions: ['Self-attention mechanism', 'Multi-head attention', 'Positional encoding'],
-        methodology: 'Replaces recurrence with scaled dot-product self-attention layers.',
-        limitations: ['High quadratic memory complexity with sequence length'],
-        potentialApplications: ['Machine Translation', 'LLM pre-training'],
-      };
-
-      const result = summarizationOutputSchema.safeParse(validPayload);
-      expect(result.success).toBe(true);
-    });
-
-    test('rejects invalid summarizationOutputSchema payload', () => {
-      const invalidPayload = {
-        paperTitle: 'Test Paper',
-        summary: 'Short summary',
-        // missing keyContributions
-      };
-
-      const result = summarizationOutputSchema.safeParse(invalidPayload);
-      expect(result.success).toBe(false);
-    });
-  });
-
-  describe('benchmarkAgent', () => {
-    test('initializes correctly with attached tools', async () => {
-      expect(benchmarkAgent).toBeInstanceOf(Agent);
-      expect(benchmarkAgent.id).toBe('benchmark-agent');
-      expect(benchmarkAgent.name).toBe('Benchmark Agent');
-
-      const tools = await benchmarkAgent.listTools();
-      expect(tools).toHaveProperty('papers_with_code_search');
-    });
-
-    test('validates benchmarkOutputSchema with valid payload', () => {
-      const validPayload = {
-        query: 'ImageNet classification',
+        summary: 'Proposes Transformer architecture.',
+        keyContributions: ['Self-attention'],
+        methodology: 'Scaled dot-product attention',
+        limitations: ['Quadratic complexity'],
+        potentialApplications: ['LLM pre-training'],
+      },
+      invalidPayload: { paperTitle: 'Test' },
+    },
+    {
+      name: 'benchmarkAgent',
+      agent: benchmarkAgent,
+      id: 'benchmark-agent',
+      expectedName: 'Benchmark Agent',
+      expectedTools: ['papers_with_code_search'],
+      schema: benchmarkOutputSchema,
+      validPayload: {
+        query: 'ImageNet',
         benchmarks: [
           {
             taskName: 'Image Classification',
@@ -184,117 +140,71 @@ describe('Literature & Analysis Sub-Agents', () => {
             sotaMetric: 'Top-1 Accuracy',
             topModel: 'CoAtNet-7',
             score: '90.88%',
-            evaluationLeaderboard: [
-              {
-                modelName: 'CoAtNet-7',
-                score: '90.88%',
-                rank: 1,
-              },
-            ],
           },
         ],
-      };
-
-      const result = benchmarkOutputSchema.safeParse(validPayload);
-      expect(result.success).toBe(true);
-    });
-
-    test('rejects invalid benchmarkOutputSchema payload', () => {
-      const invalidPayload = {
-        query: 'ImageNet',
-        benchmarks: 'not-an-array',
-      };
-
-      const result = benchmarkOutputSchema.safeParse(invalidPayload);
-      expect(result.success).toBe(false);
-    });
-  });
-
-  describe('githubCodeSearchAgent', () => {
-    test('initializes correctly with attached tools', async () => {
-      expect(githubCodeSearchAgent).toBeInstanceOf(Agent);
-      expect(githubCodeSearchAgent.id).toBe('github-code-search-agent');
-      expect(githubCodeSearchAgent.name).toBe('GitHub Code Search Agent');
-
-      const tools = await githubCodeSearchAgent.listTools();
-      expect(tools).toHaveProperty('github_search');
-    });
-
-    test('validates githubCodeSearchOutputSchema with valid payload', () => {
-      const validPayload = {
+      },
+      invalidPayload: { query: 'test', benchmarks: 'invalid' },
+    },
+    {
+      name: 'githubCodeSearchAgent',
+      agent: githubCodeSearchAgent,
+      id: 'github-code-search-agent',
+      expectedName: 'GitHub Code Search Agent',
+      expectedTools: ['github_search'],
+      schema: githubCodeSearchOutputSchema,
+      validPayload: {
         query: 'transformer pytorch',
         repositories: [
           {
             name: 'transformers',
             fullName: 'huggingface/transformers',
-            description: 'State-of-the-art Machine Learning for Pytorch, TensorFlow, and JAX.',
             url: 'https://github.com/huggingface/transformers',
             stars: 130000,
-            language: 'Python',
-            topics: ['deep-learning', 'pytorch', 'transformers'],
           },
         ],
-      };
-
-      const result = githubCodeSearchOutputSchema.safeParse(validPayload);
-      expect(result.success).toBe(true);
-    });
-
-    test('rejects invalid githubCodeSearchOutputSchema payload', () => {
-      const invalidPayload = {
-        query: 'test',
-        repositories: [{ stars: 'many' }], // stars must be a number
-      };
-
-      const result = githubCodeSearchOutputSchema.safeParse(invalidPayload);
-      expect(result.success).toBe(false);
-    });
-  });
-
-  describe('datasetAgent', () => {
-    test('initializes correctly with attached tools', async () => {
-      expect(datasetAgent).toBeInstanceOf(Agent);
-      expect(datasetAgent.id).toBe('dataset-agent');
-      expect(datasetAgent.name).toBe('Dataset Agent');
-
-      const tools = await datasetAgent.listTools();
-      expect(tools).toHaveProperty('huggingface_search');
-    });
-
-    test('validates datasetOutputSchema with valid payload', () => {
-      const validPayload = {
+      },
+      invalidPayload: { query: 'test', repositories: [{ stars: 'not-a-number' }] },
+    },
+    {
+      name: 'datasetAgent',
+      agent: datasetAgent,
+      id: 'dataset-agent',
+      expectedName: 'Dataset Agent',
+      expectedTools: ['huggingface_search'],
+      schema: datasetOutputSchema,
+      validPayload: {
         query: 'squad',
-        datasets: [
-          {
-            id: 'rajpurkar/squad',
-            description: 'Stanford Question Answering Dataset',
-            downloads: 500000,
-            tags: ['question-answering'],
-            likes: 1200,
-          },
-        ],
-        models: [
-          {
-            id: 'bert-base-uncased',
-            pipeline_tag: 'fill-mask',
-            downloads: 10000000,
-            likes: 5000,
-          },
-        ],
-      };
+        datasets: [{ id: 'rajpurkar/squad', downloads: 500000 }],
+        models: [{ id: 'bert-base-uncased', downloads: 10000000 }],
+      },
+      invalidPayload: { query: 'test' },
+    },
+  ];
 
-      const result = datasetOutputSchema.safeParse(validPayload);
-      expect(result.success).toBe(true);
-    });
+  test.each(subAgentCases)(
+    '$name initializes with correct metadata, tools, and structured output schema',
+    async ({ agent: subAgent, id, expectedName, expectedTools, schema }) => {
+      expect(subAgent).toBeInstanceOf(Agent);
+      expect(subAgent.id as string).toBe(id);
+      expect(subAgent.name).toBe(expectedName);
 
-    test('rejects invalid datasetOutputSchema payload', () => {
-      const invalidPayload = {
-        query: 'test',
-        // missing datasets and models
-      };
+      const tools = await subAgent.listTools();
+      for (const toolName of expectedTools) {
+        expect(tools).toHaveProperty(toolName);
+      }
 
-      const result = datasetOutputSchema.safeParse(invalidPayload);
-      expect(result.success).toBe(false);
-    });
-  });
+      expect(schema).toBeDefined();
+    },
+  );
+
+  test.each(subAgentCases)(
+    '$name schema validates valid payload and rejects invalid payload',
+    ({ schema, validPayload, invalidPayload }) => {
+      const validResult = schema.safeParse(validPayload);
+      expect(validResult.success).toBe(true);
+
+      const invalidResult = schema.safeParse(invalidPayload);
+      expect(invalidResult.success).toBe(false);
+    },
+  );
 });

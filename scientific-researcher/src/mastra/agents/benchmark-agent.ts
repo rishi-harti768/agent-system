@@ -1,4 +1,5 @@
 import { Agent } from '@mastra/core/agent';
+import { toStandardSchema } from '@mastra/core/schema';
 import { z } from 'zod';
 
 import { papersWithCodeSearchTool } from '../tools/papers-with-code-tool';
@@ -37,5 +38,10 @@ Your goal is to query Papers with Code to discover official benchmark evaluation
   model: 'google/gemini-3.5-flash',
   tools: {
     papers_with_code_search: papersWithCodeSearchTool,
+  },
+  defaultOptions: {
+    structuredOutput: {
+      schema: toStandardSchema(benchmarkOutputSchema),
+    },
   },
 });

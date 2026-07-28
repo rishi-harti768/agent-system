@@ -1,22 +1,19 @@
 import { Agent } from '@mastra/core/agent';
+import { toStandardSchema } from '@mastra/core/schema';
 import { z } from 'zod';
 
 import { arxivSearchTool } from '../tools/arxiv-tool';
 import { semanticScholarSearchTool } from '../tools/semantic-scholar-tool';
+import { basePaperMetadataSchema, paperSourceSchema } from './schemas';
 
 export const paperSearchOutputSchema = z.object({
   query: z.string(),
   totalFound: z.number(),
   papers: z.array(
-    z.object({
-      title: z.string(),
+    basePaperMetadataSchema.extend({
       authors: z.array(z.string()),
       abstract: z.string(),
-      url: z.string().optional(),
-      publishedDate: z.string().optional(),
-      citationCount: z.number().optional(),
-      externalIds: z.record(z.string()).optional(),
-      source: z.string(),
+      source: paperSourceSchema,
     }),
   ),
 });
@@ -35,5 +32,10 @@ Always return structured responses adhering to the required schema, organizing p
   tools: {
     arxiv_search: arxivSearchTool,
     semantic_scholar_search: semanticScholarSearchTool,
+  },
+  defaultOptions: {
+    structuredOutput: {
+      schema: toStandardSchema(paperSearchOutputSchema),
+    },
   },
 });

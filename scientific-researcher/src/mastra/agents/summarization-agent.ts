@@ -1,4 +1,5 @@
 import { Agent } from '@mastra/core/agent';
+import { toStandardSchema } from '@mastra/core/schema';
 import { z } from 'zod';
 
 import { webFetchTool } from '../tools/web-fetch-tool';
@@ -29,5 +30,10 @@ Highlight key methodological innovations, core empirical results, known limitati
     web_fetch: webFetchTool,
     arxiv_search: arxivSearchTool,
     semantic_scholar_search: semanticScholarSearchTool,
+  },
+  defaultOptions: {
+    structuredOutput: {
+      schema: toStandardSchema(summarizationOutputSchema),
+    },
   },
 });

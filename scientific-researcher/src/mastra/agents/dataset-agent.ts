@@ -1,4 +1,5 @@
 import { Agent } from '@mastra/core/agent';
+import { toStandardSchema } from '@mastra/core/schema';
 import { z } from 'zod';
 
 import { huggingfaceSearchTool } from '../tools/huggingface-tool';
@@ -36,5 +37,10 @@ Your goal is to search Hugging Face Hub to identify available datasets, pre-trai
   model: 'google/gemini-3.5-flash',
   tools: {
     huggingface_search: huggingfaceSearchTool,
+  },
+  defaultOptions: {
+    structuredOutput: {
+      schema: toStandardSchema(datasetOutputSchema),
+    },
   },
 });
