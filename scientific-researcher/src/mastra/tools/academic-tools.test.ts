@@ -31,7 +31,7 @@ describe('Academic Data Tools', () => {
           status: 200,
           headers: { 'Content-Type': 'application/xml' },
         });
-      }) as typeof fetch;
+      }) as unknown as typeof fetch;
 
       const result = await (arxivSearchTool.execute as Function)({
         query: 'Transformer',
@@ -69,7 +69,7 @@ describe('Academic Data Tools', () => {
           status: 200,
           headers: { 'Content-Type': 'application/json' },
         });
-      }) as typeof fetch;
+      }) as unknown as typeof fetch;
 
       const result = await (semanticScholarSearchTool.execute as Function)({
         query: 'ResNet',
@@ -120,7 +120,7 @@ describe('Academic Data Tools', () => {
           status: 200,
           headers: { 'Content-Type': 'application/json' },
         });
-      }) as typeof fetch;
+      }) as unknown as typeof fetch;
 
       const result = await (papersWithCodeSearchTool.execute as Function)({
         query: 'GPT-4',
