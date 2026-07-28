@@ -315,9 +315,13 @@ describe('Literature & Analysis Sub-Agents', () => {
   test.each(subAgentCases)(
     '$name registers structuredOutput schema',
     ({ agent: subAgent }) => {
-      // @ts-ignore
-      const structuredOutput = (subAgent as any).defaultOptions?.structuredOutput || (subAgent as any).options?.defaultOptions?.structuredOutput;
-      expect(structuredOutput || subAgent).toBeDefined();
+      const agentObj = subAgent as unknown as Record<
+        string,
+        Record<string, unknown>
+      >;
+      const defaultOptions =
+        agentObj.defaultOptions || agentObj.options?.defaultOptions;
+      expect(defaultOptions?.structuredOutput || subAgent).toBeDefined();
     },
   );
 });

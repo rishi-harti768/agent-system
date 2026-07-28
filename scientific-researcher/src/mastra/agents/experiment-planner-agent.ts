@@ -15,7 +15,10 @@ export const experimentExecutionResultSchema = z.object({
   success: z.boolean(),
   stdout: z.string().optional(),
   stderr: z.string().optional(),
-  exitCode: z.number().optional(),
+  exitCode: z.number().nullable().optional(),
+  timedOut: z.boolean().optional(),
+  executionTimeMs: z.number().optional(),
+  error: z.string().optional(),
   metrics: z.record(z.union([z.string(), z.number()])).optional(),
 });
 

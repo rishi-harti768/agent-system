@@ -141,8 +141,18 @@ export const pythonSandboxTool = createTool({
 
       const executionTimeMs = Date.now() - startTime;
 
-      const stdout = await new Response(proc.stdout).text();
-      const stderr = await new Response(proc.stderr).text();
+      let stdout = '';
+      let stderr = '';
+      try {
+        stdout = await new Response(proc.stdout).text();
+      } catch {
+        stdout = '';
+      }
+      try {
+        stderr = await new Response(proc.stderr).text();
+      } catch {
+        stderr = '';
+      }
 
       if (outcome === 'timeout' || timedOut) {
         return {
