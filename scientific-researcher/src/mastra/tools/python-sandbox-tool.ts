@@ -68,7 +68,7 @@ export const pythonSandboxTool = createTool({
   }) => {
     const startTime = Date.now();
     const effectiveTimeout = Math.min(Math.max(timeoutMs, 100), 30_000);
-    const sandboxDir = path.resolve(process.cwd(), 'sandbox');
+    const sandboxDir = path.resolve(import.meta.dirname, '..', '..', '..', 'sandbox');
 
     try {
       if (!fs.existsSync(sandboxDir)) {

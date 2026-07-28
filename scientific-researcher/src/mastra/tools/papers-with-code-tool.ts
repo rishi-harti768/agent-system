@@ -1,5 +1,17 @@
 import { createTool } from '@mastra/core/tools';
 import { z } from 'zod';
+import { safeFetchJson } from './http-utils';
+
+export interface PapersWithCodeNamedItem {
+  name?: string;
+}
+
+export interface PapersWithCodeEvaluation {
+  task?: string | PapersWithCodeNamedItem;
+  dataset?: string | PapersWithCodeNamedItem;
+  metric_name?: string;
+  metric_value?: string | number;
+}
 
 export interface PapersWithCodeItem {
   id?: string;
@@ -18,14 +30,9 @@ export interface PapersWithCodeItem {
   repository?: {
     url?: string;
   };
-  tasks?: Array<{ name?: string } | string>;
-  methods?: Array<{ name?: string } | string>;
-  evaluations?: Array<{
-    task?: string | { name?: string };
-    dataset?: string | { name?: string };
-    metric_name?: string;
-    metric_value?: string | number;
-  }>;
+  tasks?: Array<PapersWithCodeNamedItem | string>;
+  methods?: Array<PapersWithCodeNamedItem | string>;
+  evaluations?: PapersWithCodeEvaluation[];
 }
 
 export const papersWithCodeSearchTool = createTool({
@@ -38,6 +45,7 @@ export const papersWithCodeSearchTool = createTool({
   outputSchema: z.object({
     query: z.string(),
     count: z.number(),
+    error: z.string().optional(),
     results: z.array(
       z.object({
         id: z.string(),
@@ -63,17 +71,16 @@ export const papersWithCodeSearchTool = createTool({
     const url = `https://paperswithcode.com/api/v1/search/?q=${formattedQuery}`;
 
     try {
-      const response = await fetch(url, {
-        headers: { 'User-Agent': 'Mastra Scientific Researcher Agent/1.0' },
-        signal: AbortSignal.timeout(15_000),
-      });
-
-      if (!response.ok) {
-        throw new Error(`Papers with Code API responded with status ${response.status}`);
+      const data = await safeFetchJson<{ results?: PapersWithCodeItem[] }>(url);
+      if (!data || !data.results) {
+        return {
+          query,
+          count: 0,
+          results: [],
+        };
       }
 
-      const data = (await response.json()) as { results?: PapersWithCodeItem[] };
-      const rawResults = data.results || [];
+      const rawResults = data.results;
 
       const results = rawResults.slice(0, limit).map((item: PapersWithCodeItem) => {
         const paperObj = item.paper || item;
@@ -113,10 +120,12 @@ export const papersWithCodeSearchTool = createTool({
         count: results.length,
         results,
       };
-    } catch {
+    } catch (err: unknown) {
+      const error = err instanceof Error ? err.message : String(err);
       return {
         query,
         count: 0,
+        error,
         results: [],
       };
     }

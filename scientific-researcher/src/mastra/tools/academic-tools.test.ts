@@ -82,6 +82,8 @@ describe('Academic Data Tools', () => {
       expect(result.results[0].authors).toEqual(['Kaiming He', 'Xiangyu Zhang']);
       expect(result.results[0].citationCount).toBe(150000);
       expect(result.results[0].citations?.[0].title).toBe('Followup paper');
+      expect(result.results[0].citationGraph?.nodes.length).toBe(3);
+      expect(result.results[0].citationGraph?.edges.length).toBe(2);
     });
   });
 

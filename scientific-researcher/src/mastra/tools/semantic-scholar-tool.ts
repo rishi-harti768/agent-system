@@ -1,5 +1,6 @@
 import { createTool } from '@mastra/core/tools';
 import { z } from 'zod';
+import { safeFetchJson } from './http-utils';
 
 export interface SemanticScholarPaper {
   paperId?: string;
@@ -23,6 +24,7 @@ export const semanticScholarSearchTool = createTool({
   outputSchema: z.object({
     query: z.string(),
     count: z.number(),
+    error: z.string().optional(),
     results: z.array(
       z.object({
         paperId: z.string(),
@@ -34,6 +36,10 @@ export const semanticScholarSearchTool = createTool({
         url: z.string().optional(),
         citations: z.array(z.object({ paperId: z.string(), title: z.string() })).optional(),
         references: z.array(z.object({ paperId: z.string(), title: z.string() })).optional(),
+        citationGraph: z.object({
+          nodes: z.array(z.object({ id: z.string(), label: z.string(), type: z.string() })),
+          edges: z.array(z.object({ source: z.string(), target: z.string(), type: z.string() })),
+        }).optional(),
       })
     ),
   }),
@@ -43,43 +49,63 @@ export const semanticScholarSearchTool = createTool({
     const url = `https://api.semanticscholar.org/graph/v1/paper/search?query=${formattedQuery}&limit=${limit}&fields=${fields}`;
 
     try {
-      const response = await fetch(url, {
-        headers: { 'User-Agent': 'Mastra Scientific Researcher Agent/1.0' },
-        signal: AbortSignal.timeout(15_000),
-      });
-
-      if (!response.ok) {
-        throw new Error(`Semantic Scholar API responded with status ${response.status}`);
+      const data = await safeFetchJson<{ data?: SemanticScholarPaper[] }>(url);
+      if (!data || !data.data) {
+        return {
+          query,
+          count: 0,
+          results: [],
+        };
       }
 
-      const data = (await response.json()) as { data?: SemanticScholarPaper[] };
-      const rawResults = data.data || [];
+      const rawResults = data.data;
 
-      const results = rawResults.map((paper: SemanticScholarPaper) => ({
-        paperId: paper.paperId || '',
-        title: paper.title || '',
-        abstract: paper.abstract || null,
-        authors: Array.isArray(paper.authors) ? paper.authors.map((author) => author.name || '') : [],
-        citationCount: typeof paper.citationCount === 'number' ? paper.citationCount : 0,
-        influentialCitationCount: typeof paper.influentialCitationCount === 'number' ? paper.influentialCitationCount : 0,
-        url: paper.url || `https://www.semanticscholar.org/paper/${paper.paperId}`,
-        citations: Array.isArray(paper.citations)
-          ? paper.citations.map((citation) => ({ paperId: citation.paperId || '', title: citation.title || '' }))
-          : [],
-        references: Array.isArray(paper.references)
-          ? paper.references.map((reference) => ({ paperId: reference.paperId || '', title: reference.title || '' }))
-          : [],
-      }));
+      const results = rawResults.map((paper: SemanticScholarPaper) => {
+        const paperId = paper.paperId || '';
+        const paperTitle = paper.title || '';
+        const citations = Array.isArray(paper.citations)
+          ? paper.citations.map((c) => ({ paperId: c.paperId || '', title: c.title || '' }))
+          : [];
+        const references = Array.isArray(paper.references)
+          ? paper.references.map((r) => ({ paperId: r.paperId || '', title: r.title || '' }))
+          : [];
+
+        const nodes = [
+          { id: paperId, label: paperTitle, type: 'paper' },
+          ...citations.filter((c) => c.paperId).map((c) => ({ id: c.paperId, label: c.title, type: 'citation' })),
+          ...references.filter((r) => r.paperId).map((r) => ({ id: r.paperId, label: r.title, type: 'reference' })),
+        ];
+
+        const edges = [
+          ...citations.filter((c) => c.paperId).map((c) => ({ source: c.paperId, target: paperId, type: 'cites' })),
+          ...references.filter((r) => r.paperId).map((r) => ({ source: paperId, target: r.paperId, type: 'references' })),
+        ];
+
+        return {
+          paperId,
+          title: paperTitle,
+          abstract: paper.abstract || null,
+          authors: Array.isArray(paper.authors) ? paper.authors.map((author) => author.name || '') : [],
+          citationCount: typeof paper.citationCount === 'number' ? paper.citationCount : 0,
+          influentialCitationCount: typeof paper.influentialCitationCount === 'number' ? paper.influentialCitationCount : 0,
+          url: paper.url || `https://www.semanticscholar.org/paper/${paperId}`,
+          citations,
+          references,
+          citationGraph: { nodes, edges },
+        };
+      });
 
       return {
         query,
         count: results.length,
         results,
       };
-    } catch {
+    } catch (err: unknown) {
+      const error = err instanceof Error ? err.message : String(err);
       return {
         query,
         count: 0,
+        error,
         results: [],
       };
     }

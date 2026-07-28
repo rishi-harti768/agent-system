@@ -11,6 +11,7 @@ export const arxivSearchTool = createTool({
   outputSchema: z.object({
     query: z.string(),
     count: z.number(),
+    error: z.string().optional(),
     results: z.array(
       z.object({
         id: z.string(),
@@ -44,10 +45,12 @@ export const arxivSearchTool = createTool({
         count: results.length,
         results,
       };
-    } catch {
+    } catch (err: unknown) {
+      const error = err instanceof Error ? err.message : String(err);
       return {
         query,
         count: 0,
+        error,
         results: [],
       };
     }

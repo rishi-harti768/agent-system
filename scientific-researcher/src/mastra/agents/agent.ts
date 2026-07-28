@@ -9,6 +9,12 @@ import { Memory } from '@mastra/memory';
 
 import { webFetchTool } from '../tools/web-fetch-tool';
 import { startScheduleTool, stopScheduleTool } from '../tools/schedule-tools';
+import { arxivSearchTool } from '../tools/arxiv-tool';
+import { semanticScholarSearchTool } from '../tools/semantic-scholar-tool';
+import { papersWithCodeSearchTool } from '../tools/papers-with-code-tool';
+import { githubSearchTool } from '../tools/github-tool';
+import { huggingfaceSearchTool } from '../tools/huggingface-tool';
+import { pythonSandboxTool } from '../tools/python-sandbox-tool';
 
 const workspacePath = 'workspace';
 
@@ -69,6 +75,12 @@ For local file changes, end with a plain-text URL using ${pathToFileURL(`${works
     stop_schedule: stopScheduleTool,
     web_fetch: webFetchTool,
     web_search: google.tools.googleSearch({}),
+    arxiv_search: arxivSearchTool,
+    semantic_scholar_search: semanticScholarSearchTool,
+    papers_with_code_search: papersWithCodeSearchTool,
+    github_search: githubSearchTool,
+    huggingface_search: huggingfaceSearchTool,
+    python_sandbox: pythonSandboxTool,
   },
   signals: [new TaskSignalProvider()],
 });

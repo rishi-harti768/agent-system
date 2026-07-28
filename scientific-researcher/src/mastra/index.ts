@@ -8,6 +8,7 @@ import {
   Observability,
   SensitiveDataFilter,
 } from '@mastra/observability';
+import { askUserTool } from '@mastra/core/tools';
 import { agent } from './agents/agent';
 import { startScheduleTool, stopScheduleTool } from './tools/schedule-tools';
 import { webFetchTool } from './tools/web-fetch-tool';
@@ -21,6 +22,7 @@ import { pythonSandboxTool } from './tools/python-sandbox-tool';
 export const mastra = new Mastra({
   agents: { agent },
   tools: {
+    askUserTool,
     startScheduleTool,
     stopScheduleTool,
     webFetchTool,

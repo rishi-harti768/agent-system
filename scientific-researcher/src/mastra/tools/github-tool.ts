@@ -68,7 +68,7 @@ export const githubSearchTool = createTool({
     const results = data.items.map((item) => {
       const repo = item.repository || item;
       return {
-        name: repo.name || item.name || '',
+        name: item.name || repo.name || '',
         fullName: repo.full_name || item.full_name || '',
         description: repo.description || item.description || '',
         url: item.html_url || repo.html_url || '',
