@@ -15,6 +15,12 @@ import { papersWithCodeSearchTool } from '../tools/papers-with-code-tool';
 import { githubSearchTool } from '../tools/github-tool';
 import { huggingfaceSearchTool } from '../tools/huggingface-tool';
 import { pythonSandboxTool } from '../tools/python-sandbox-tool';
+import { paperSearchAgent } from './paper-search-agent';
+import { citationAgent } from './citation-agent';
+import { summarizationAgent } from './summarization-agent';
+import { benchmarkAgent } from './benchmark-agent';
+import { githubCodeSearchAgent } from './github-code-search-agent';
+import { datasetAgent } from './dataset-agent';
 
 const workspacePath = 'workspace';
 
@@ -59,6 +65,14 @@ For local file changes, end with a plain-text URL using ${pathToFileURL(`${works
   defaultOptions: {
     maxSteps: 100,
     autoResumeSuspendedTools: true,
+  },
+  agents: {
+    paperSearchAgent,
+    citationAgent,
+    summarizationAgent,
+    benchmarkAgent,
+    githubCodeSearchAgent,
+    datasetAgent,
   },
   memory: new Memory({
     options: {
