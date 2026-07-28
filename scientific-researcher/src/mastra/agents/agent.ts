@@ -15,6 +15,8 @@ import { papersWithCodeSearchTool } from '../tools/papers-with-code-tool';
 import { githubSearchTool } from '../tools/github-tool';
 import { huggingfaceSearchTool } from '../tools/huggingface-tool';
 import { pythonSandboxTool } from '../tools/python-sandbox-tool';
+import { reportWriterTool } from '../tools/report-writer-tool';
+import { presentationWriterTool } from '../tools/presentation-writer-tool';
 import { paperSearchAgent } from './paper-search-agent';
 import { citationAgent } from './citation-agent';
 import { summarizationAgent } from './summarization-agent';
@@ -24,6 +26,8 @@ import { datasetAgent } from './dataset-agent';
 import { gapDetectionAgent } from './gap-detection-agent';
 import { noveltyCheckerAgent } from './novelty-checker-agent';
 import { experimentPlannerAgent } from './experiment-planner-agent';
+import { reportGeneratorAgent } from './report-generator-agent';
+import { presentationAgent } from './presentation-agent';
 
 const workspacePath = 'workspace';
 
@@ -79,6 +83,8 @@ For local file changes, end with a plain-text URL using ${pathToFileURL(`${works
     gapDetectionAgent,
     noveltyCheckerAgent,
     experimentPlannerAgent,
+    reportGeneratorAgent,
+    presentationAgent,
   },
   memory: new Memory({
     options: {
@@ -101,6 +107,8 @@ For local file changes, end with a plain-text URL using ${pathToFileURL(`${works
     github_search: githubSearchTool,
     huggingface_search: huggingfaceSearchTool,
     python_sandbox: pythonSandboxTool,
+    report_writer: reportWriterTool,
+    presentation_writer: presentationWriterTool,
   },
   signals: [new TaskSignalProvider()],
 });

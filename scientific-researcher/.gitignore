@@ -1,4 +1,5 @@
 output.txt
+output/
 node_modules
 dist
 .mastra
