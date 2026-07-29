@@ -1,5 +1,6 @@
 import { Agent } from '@mastra/core/agent';
 import { toStandardSchema } from '@mastra/core/schema';
+import { Memory } from '@mastra/memory';
 import { z } from 'zod';
 
 import { huggingfaceSearchTool } from '../tools/huggingface-tool';
@@ -18,6 +19,7 @@ export const datasetOutputSchema = searchQuerySchema.extend({
   models: z.array(
     z.object({
       id: z.string(),
+      pipelineTag: z.string().optional(),
       pipeline_tag: z.string().optional(),
       downloads: z.number().optional(),
       likes: z.number().optional(),
@@ -35,6 +37,11 @@ export const datasetAgent = new Agent({
   instructions: `You are an expert Dataset & Model Catalog Agent.
 Your goal is to search Hugging Face Hub to identify available datasets, pre-trained model checkpoints, modality tags, and popularity metrics for empirical research workflows.`,
   model: DEFAULT_SUB_AGENT_MODEL,
+  memory: new Memory({
+    options: {
+      lastMessages: 10,
+    },
+  }),
   tools: {
     huggingface_search: huggingfaceSearchTool,
   },

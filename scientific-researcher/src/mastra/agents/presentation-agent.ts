@@ -1,5 +1,6 @@
 import { Agent } from '@mastra/core/agent';
 import { toStandardSchema } from '@mastra/core/schema';
+import { Memory } from '@mastra/memory';
 import { z } from 'zod';
 
 import { presentationWriterTool } from '../tools/presentation-writer-tool';
@@ -29,6 +30,11 @@ export const presentationAgent = new Agent({
   instructions: `You are an expert Presentation Agent.
 Your goal is to synthesize research literature, benchmark leaderboards, and experiment conclusions into a structured presentation deck, and generate an interactive animated HTML presentation stored using the presentation_writer tool.`,
   model: DEFAULT_SUB_AGENT_MODEL,
+  memory: new Memory({
+    options: {
+      lastMessages: 10,
+    },
+  }),
   tools: {
     presentation_writer: presentationWriterTool,
   },

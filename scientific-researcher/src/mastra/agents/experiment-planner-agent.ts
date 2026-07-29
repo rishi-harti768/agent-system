@@ -1,5 +1,6 @@
 import { Agent } from '@mastra/core/agent';
 import { toStandardSchema } from '@mastra/core/schema';
+import { Memory } from '@mastra/memory';
 import { z } from 'zod';
 
 import { pythonSandboxTool } from '../tools/python-sandbox-tool';
@@ -42,6 +43,11 @@ export const experimentPlannerAgent = new Agent({
   instructions: `You are an expert Experiment Planner & Sandbox Verification Agent.
 Your goal is to formulate verification experiments for testing research hypotheses, write clear executable Python scripts, execute them safely via the Python sandbox tool, and interpret the experimental results.`,
   model: DEFAULT_SUB_AGENT_MODEL,
+  memory: new Memory({
+    options: {
+      lastMessages: 10,
+    },
+  }),
   tools: {
     python_sandbox: pythonSandboxTool,
   },

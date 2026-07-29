@@ -95,4 +95,11 @@ describe('Report & Presentation Output Artifact Agents', () => {
       expect(invalidResult.success).toBe(false);
     });
   });
+
+  describe('Memory Isolation', () => {
+    test('reportGeneratorAgent and presentationAgent have isolated memory configured', () => {
+      expect(reportGeneratorAgent.hasOwnMemory()).toBe(true);
+      expect(presentationAgent.hasOwnMemory()).toBe(true);
+    });
+  });
 });

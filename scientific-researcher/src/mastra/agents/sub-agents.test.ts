@@ -326,6 +326,13 @@ describe('Literature & Analysis Sub-Agents', () => {
       expect(defaultOptions?.structuredOutput || subAgent).toBeDefined();
     },
   );
+
+  test.each(subAgentCases)(
+    '$name has isolated memory configured to prevent tool call context desynchronization',
+    ({ agent: subAgent }) => {
+      expect(subAgent.hasOwnMemory()).toBe(true);
+    },
+  );
 });
 
 

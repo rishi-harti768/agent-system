@@ -1,5 +1,6 @@
 import { Agent } from '@mastra/core/agent';
 import { toStandardSchema } from '@mastra/core/schema';
+import { Memory } from '@mastra/memory';
 import { z } from 'zod';
 
 import { arxivSearchTool } from '../tools/arxiv-tool';
@@ -42,6 +43,11 @@ export const gapDetectionAgent = new Agent({
   instructions: `You are an expert Research Gap & Limitation Synthesis Agent.
 Your goal is to synthesize findings from literature searches and benchmark leaderboards, identify unaddressed research gaps, evaluate limitations in existing methods, and highlight promising research directions.`,
   model: DEFAULT_SUB_AGENT_MODEL,
+  memory: new Memory({
+    options: {
+      lastMessages: 10,
+    },
+  }),
   tools: {
     arxiv_search: arxivSearchTool,
     semantic_scholar_search: semanticScholarSearchTool,

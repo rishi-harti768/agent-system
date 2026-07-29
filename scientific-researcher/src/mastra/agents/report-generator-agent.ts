@@ -1,5 +1,6 @@
 import { Agent } from '@mastra/core/agent';
 import { toStandardSchema } from '@mastra/core/schema';
+import { Memory } from '@mastra/memory';
 import { z } from 'zod';
 
 import { reportWriterTool } from '../tools/report-writer-tool';
@@ -30,6 +31,11 @@ export const reportGeneratorAgent = new Agent({
   instructions: `You are an expert Report Generator Agent.
 Your goal is to transform research synthesis, literature findings, benchmark statistics, and experimental code/results into a comprehensive, highly readable Markdown research report and save it to the output directory using the report_writer tool.`,
   model: DEFAULT_SUB_AGENT_MODEL,
+  memory: new Memory({
+    options: {
+      lastMessages: 10,
+    },
+  }),
   tools: {
     report_writer: reportWriterTool,
   },

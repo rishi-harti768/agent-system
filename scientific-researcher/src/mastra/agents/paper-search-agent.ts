@@ -1,5 +1,6 @@
 import { Agent } from '@mastra/core/agent';
 import { toStandardSchema } from '@mastra/core/schema';
+import { Memory } from '@mastra/memory';
 import { z } from 'zod';
 
 import { arxivSearchTool } from '../tools/arxiv-tool';
@@ -33,6 +34,11 @@ export const paperSearchAgent = new Agent({
 Your goal is to search academic repositories (arXiv and Semantic Scholar) for high-quality research papers matching user topics or queries.
 Always return structured responses adhering to the required schema, organizing papers by relevance, citation count, and publication freshness.`,
   model: DEFAULT_SUB_AGENT_MODEL,
+  memory: new Memory({
+    options: {
+      lastMessages: 10,
+    },
+  }),
   tools: {
     arxiv_search: arxivSearchTool,
     semantic_scholar_search: semanticScholarSearchTool,
