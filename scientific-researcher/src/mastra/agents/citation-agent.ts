@@ -14,15 +14,16 @@ export type CitationTreeNode = z.infer<typeof basePaperMetadataSchema> & {
   isInfluential?: boolean;
   depth?: number;
   relation?: 'citing' | 'referenced' | 'foundational' | 'derivative';
-  children?: CitationTreeNode[];
+  parentPaperId?: string;
 };
 
-export const citationTreeNodeSchema: z.ZodType<CitationTreeNode> = basePaperMetadataSchema.extend({
+export const citationTreeNodeSchema = basePaperMetadataSchema.extend({
   isInfluential: z.boolean().optional(),
   depth: z.number().optional(),
   relation: z.enum(['citing', 'referenced', 'foundational', 'derivative']).optional(),
-  children: z.array(z.lazy(() => citationTreeNodeSchema)).optional(),
+  parentPaperId: z.string().optional(),
 });
+
 
 export const citationOutputSchema = z.object({
   targetPaperId: z.string(),
