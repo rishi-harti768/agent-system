@@ -33,8 +33,10 @@ import { huggingfaceSearchTool } from './tools/huggingface-tool';
 import { pythonSandboxTool } from './tools/python-sandbox-tool';
 import { reportWriterTool } from './tools/report-writer-tool';
 import { presentationWriterTool } from './tools/presentation-writer-tool';
+import { MastraEditor } from "@mastra/editor";
 
 export const mastra = new Mastra({
+  editor: new MastraEditor(),
   agents: {
     chiefResearchAgent,
     paperSearchAgent,

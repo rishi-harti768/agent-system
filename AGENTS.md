@@ -1,15 +1,15 @@
 ## Agent skills
 
+> **CRITICAL DIRECTIVE**: Before executing any command, task, or tool call related to any topic below, you MUST run `view_file` on the corresponding referenced documentation file (`docs/agents/*.md`) and strictly adhere to its rules.
+
 ### Issue tracker
 
-GitHub Issues. Uses the `gh` CLI. **MUST** view [`docs/agents/issue-tracker.md`](docs/agents/issue-tracker.md) **MANDATORILY** aligning yourself with it.
+Issues and PRDs live as GitHub issues (using the `gh` CLI). See `docs/agents/issue-tracker.md`.
 
 ### Triage labels
 
-The default five canonical triage roles mapped to standard labels. See `docs/agents/triage-labels.md`. **MUST** view [`docs/agents/triage-labels.md`](docs/agents/triage-labels.md) **MANDATORILY** aligning yourself with it.
+Default canonical label vocabulary (`needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`). See `docs/agents/triage-labels.md`.
 
 ### Domain docs
 
-Single-context layout with CONTEXT.md and docs/adr/. See `docs/agents/domain.md`. **MUST** view [`docs/agents/domain.md`](docs/agents/domain.md) **MANDATORILY** aligning yourself with it.
-
-- **MUST** view and adhere to all the Architecture Decision Record at `docs/adr/` and [`CONTEXT.md`](CONTEXT.md)
+Single-context layout (`CONTEXT.md` + `docs/adr/` at root). See `docs/agents/domain.md`.
