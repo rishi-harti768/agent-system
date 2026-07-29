@@ -1,11 +1,14 @@
 import { Agent } from '@mastra/core/agent';
 import { toStandardSchema } from '@mastra/core/schema';
-import { Memory } from '@mastra/memory';
 import { z } from 'zod';
 
 import { semanticScholarSearchTool } from '../tools/semantic-scholar-tool';
 import { arxivSearchTool } from '../tools/arxiv-tool';
-import { basePaperMetadataSchema, DEFAULT_SUB_AGENT_MODEL } from './schemas';
+import {
+  basePaperMetadataSchema,
+  createSubAgentMemory,
+  DEFAULT_SUB_AGENT_MODEL,
+} from './schemas';
 
 export type CitationTreeNode = z.infer<typeof basePaperMetadataSchema> & {
   isInfluential?: boolean;
@@ -50,11 +53,7 @@ export const citationAgent = new Agent({
 Your goal is to inspect citations and references of target papers to identify foundational works, key influential predecessors, and downstream derivative literature.
 Provide a clear analysis of citation graphs and highlight foundational papers shaping the field.`,
   model: DEFAULT_SUB_AGENT_MODEL,
-  memory: new Memory({
-    options: {
-      lastMessages: 10,
-    },
-  }),
+  memory: createSubAgentMemory(),
   tools: {
     semantic_scholar_search: semanticScholarSearchTool,
     arxiv_search: arxivSearchTool,

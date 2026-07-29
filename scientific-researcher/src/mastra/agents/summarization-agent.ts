@@ -1,12 +1,11 @@
 import { Agent } from '@mastra/core/agent';
 import { toStandardSchema } from '@mastra/core/schema';
-import { Memory } from '@mastra/memory';
 import { z } from 'zod';
 
 import { webFetchTool } from '../tools/web-fetch-tool';
 import { arxivSearchTool } from '../tools/arxiv-tool';
 import { semanticScholarSearchTool } from '../tools/semantic-scholar-tool';
-import { DEFAULT_SUB_AGENT_MODEL } from './schemas';
+import { createSubAgentMemory, DEFAULT_SUB_AGENT_MODEL } from './schemas';
 
 export const summarizationOutputSchema = z.object({
   paperTitle: z.string(),
@@ -28,11 +27,7 @@ export const summarizationAgent = new Agent({
 Your goal is to digest complex academic papers, abstracts, and web resources to produce concise, technical summaries.
 Highlight key methodological innovations, core empirical results, known limitations, and potential real-world applications.`,
   model: DEFAULT_SUB_AGENT_MODEL,
-  memory: new Memory({
-    options: {
-      lastMessages: 10,
-    },
-  }),
+  memory: createSubAgentMemory(),
   tools: {
     web_fetch: webFetchTool,
     arxiv_search: arxivSearchTool,
@@ -44,4 +39,5 @@ Highlight key methodological innovations, core empirical results, known limitati
     },
   },
 });
+
 
