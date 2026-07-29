@@ -5,7 +5,7 @@ import { z } from 'zod';
 import { arxivSearchTool } from '../tools/arxiv-tool';
 import { semanticScholarSearchTool } from '../tools/semantic-scholar-tool';
 import { webFetchTool } from '../tools/web-fetch-tool';
-import { DEFAULT_SUB_AGENT_MODEL } from './schemas';
+import { createSubAgentMemory, DEFAULT_SUB_AGENT_MODEL } from './schemas';
 
 export const similarWorkSchema = z.object({
   title: z.string(),
@@ -36,6 +36,7 @@ export const noveltyCheckerAgent = new Agent({
   instructions: `You are an expert Research Novelty & Prior Art Checker Agent.
 Your goal is to evaluate proposed research hypotheses or architectural ideas against academic databases, calculate a novelty score (0-10), highlight similar existing work, and summarize key differentiation points.`,
   model: DEFAULT_SUB_AGENT_MODEL,
+  memory: createSubAgentMemory(),
   tools: {
     arxiv_search: arxivSearchTool,
     semantic_scholar_search: semanticScholarSearchTool,
@@ -47,3 +48,4 @@ Your goal is to evaluate proposed research hypotheses or architectural ideas aga
     },
   },
 });
+

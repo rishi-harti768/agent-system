@@ -3,7 +3,11 @@ import { toStandardSchema } from '@mastra/core/schema';
 import { z } from 'zod';
 
 import { papersWithCodeSearchTool } from '../tools/papers-with-code-tool';
-import { DEFAULT_SUB_AGENT_MODEL, searchQuerySchema } from './schemas';
+import {
+  createSubAgentMemory,
+  DEFAULT_SUB_AGENT_MODEL,
+  searchQuerySchema,
+} from './schemas';
 
 export const benchmarkMetricSchema = z.object({
   name: z.string(),
@@ -42,6 +46,7 @@ export const benchmarkAgent = new Agent({
   instructions: `You are an expert Benchmark & SOTA Evaluation Agent.
 Your goal is to query Papers with Code to discover official benchmark evaluation metrics, leaderboards, top-performing models, and standardized datasets across machine learning domains.`,
   model: DEFAULT_SUB_AGENT_MODEL,
+  memory: createSubAgentMemory(),
   tools: {
     papers_with_code_search: papersWithCodeSearchTool,
   },

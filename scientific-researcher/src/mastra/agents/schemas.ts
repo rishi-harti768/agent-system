@@ -1,6 +1,14 @@
+import { Memory } from '@mastra/memory';
 import { z } from 'zod';
 
 export const DEFAULT_SUB_AGENT_MODEL = 'google/gemini-3.5-flash';
+
+export const createSubAgentMemory = () =>
+  new Memory({
+    options: {
+      lastMessages: 10,
+    },
+  });
 
 export const searchQuerySchema = z.object({
   query: z.string().min(1, 'Query string cannot be empty'),
@@ -29,4 +37,5 @@ export const basePaperMetadataSchema = z.object({
 
 export type PaperSource = z.infer<typeof paperSourceSchema>;
 export type BasePaperMetadata = z.infer<typeof basePaperMetadataSchema>;
+
 

@@ -3,7 +3,11 @@ import { toStandardSchema } from '@mastra/core/schema';
 import { z } from 'zod';
 
 import { githubSearchTool } from '../tools/github-tool';
-import { DEFAULT_SUB_AGENT_MODEL, searchQuerySchema } from './schemas';
+import {
+  createSubAgentMemory,
+  DEFAULT_SUB_AGENT_MODEL,
+  searchQuerySchema,
+} from './schemas';
 
 export const githubCodeSearchOutputSchema = searchQuerySchema.extend({
   repositories: z.array(
@@ -31,6 +35,7 @@ export const githubCodeSearchAgent = new Agent({
   instructions: `You are an expert GitHub Code Search Agent.
 Your goal is to locate open-source implementations, official research codebases, popular forks, and relevant tools on GitHub related to scientific research topics.`,
   model: DEFAULT_SUB_AGENT_MODEL,
+  memory: createSubAgentMemory(),
   tools: {
     github_search: githubSearchTool,
   },
@@ -40,4 +45,5 @@ Your goal is to locate open-source implementations, official research codebases,
     },
   },
 });
+
 

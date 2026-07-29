@@ -6,6 +6,7 @@ import { arxivSearchTool } from '../tools/arxiv-tool';
 import { semanticScholarSearchTool } from '../tools/semantic-scholar-tool';
 import {
   basePaperMetadataSchema,
+  createSubAgentMemory,
   DEFAULT_SUB_AGENT_MODEL,
   paperSourceSchema,
   searchQuerySchema,
@@ -33,6 +34,7 @@ export const paperSearchAgent = new Agent({
 Your goal is to search academic repositories (arXiv and Semantic Scholar) for high-quality research papers matching user topics or queries.
 Always return structured responses adhering to the required schema, organizing papers by relevance, citation count, and publication freshness.`,
   model: DEFAULT_SUB_AGENT_MODEL,
+  memory: createSubAgentMemory(),
   tools: {
     arxiv_search: arxivSearchTool,
     semantic_scholar_search: semanticScholarSearchTool,
@@ -43,4 +45,5 @@ Always return structured responses adhering to the required schema, organizing p
     },
   },
 });
+
 

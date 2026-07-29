@@ -4,21 +4,26 @@ import { z } from 'zod';
 
 import { semanticScholarSearchTool } from '../tools/semantic-scholar-tool';
 import { arxivSearchTool } from '../tools/arxiv-tool';
-import { basePaperMetadataSchema, DEFAULT_SUB_AGENT_MODEL } from './schemas';
+import {
+  basePaperMetadataSchema,
+  createSubAgentMemory,
+  DEFAULT_SUB_AGENT_MODEL,
+} from './schemas';
 
 export type CitationTreeNode = z.infer<typeof basePaperMetadataSchema> & {
   isInfluential?: boolean;
   depth?: number;
   relation?: 'citing' | 'referenced' | 'foundational' | 'derivative';
-  children?: CitationTreeNode[];
+  parentPaperId?: string;
 };
 
-export const citationTreeNodeSchema: z.ZodType<CitationTreeNode> = basePaperMetadataSchema.extend({
+export const citationTreeNodeSchema = basePaperMetadataSchema.extend({
   isInfluential: z.boolean().optional(),
   depth: z.number().optional(),
   relation: z.enum(['citing', 'referenced', 'foundational', 'derivative']).optional(),
-  children: z.array(z.lazy(() => citationTreeNodeSchema)).optional(),
+  parentPaperId: z.string().optional(),
 });
+
 
 export const citationOutputSchema = z.object({
   targetPaperId: z.string(),
@@ -49,6 +54,7 @@ export const citationAgent = new Agent({
 Your goal is to inspect citations and references of target papers to identify foundational works, key influential predecessors, and downstream derivative literature.
 Provide a clear analysis of citation graphs and highlight foundational papers shaping the field.`,
   model: DEFAULT_SUB_AGENT_MODEL,
+  memory: createSubAgentMemory(),
   tools: {
     semantic_scholar_search: semanticScholarSearchTool,
     arxiv_search: arxivSearchTool,
