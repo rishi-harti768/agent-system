@@ -2,13 +2,11 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 export function getSafeOutputPath(filename: string, fallbackFilename: string): { outputDir: string; filePath: string } {
-  const outputDir = path.resolve(
-    import.meta.dirname,
-    '..',
-    '..',
-    '..',
-    'output',
-  );
+  const cwd = process.cwd();
+  const projectBase = cwd.endsWith('scientific-researcher')
+    ? cwd
+    : path.resolve(cwd, 'scientific-researcher');
+  const outputDir = path.resolve(projectBase, 'output');
 
   if (!fs.existsSync(outputDir)) {
     fs.mkdirSync(outputDir, { recursive: true });

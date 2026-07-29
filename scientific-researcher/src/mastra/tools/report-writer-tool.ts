@@ -2,6 +2,7 @@ import { createTool } from '@mastra/core/tools';
 import { z } from 'zod';
 import fs from 'node:fs';
 import { getSafeOutputPath } from './output-utils';
+import { reportSectionSchema } from '../agents/schemas';
 
 export interface ReportSectionInput {
   heading: string;
@@ -36,12 +37,7 @@ export const reportWriterTool = createTool({
       .optional()
       .describe('Executive summary paragraph.'),
     sections: z
-      .array(
-        z.object({
-          heading: z.string(),
-          body: z.string(),
-        }),
-      )
+      .array(reportSectionSchema)
       .optional()
       .describe('Structured sections for the report.'),
     filename: z.string().optional().default('RESEARCH_REPORT.md'),

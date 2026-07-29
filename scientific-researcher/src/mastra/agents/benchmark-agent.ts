@@ -53,6 +53,7 @@ Your goal is to query Papers with Code to discover official benchmark evaluation
   defaultOptions: {
     structuredOutput: {
       schema: toStandardSchema(benchmarkOutputSchema),
+      jsonPromptInjection: 'auto',
     },
   },
 });

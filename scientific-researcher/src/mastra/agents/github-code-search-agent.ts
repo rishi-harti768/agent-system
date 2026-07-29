@@ -42,6 +42,7 @@ Your goal is to locate open-source implementations, official research codebases,
   defaultOptions: {
     structuredOutput: {
       schema: toStandardSchema(githubCodeSearchOutputSchema),
+      jsonPromptInjection: 'auto',
     },
   },
 });

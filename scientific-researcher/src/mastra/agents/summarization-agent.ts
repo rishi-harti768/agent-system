@@ -36,6 +36,7 @@ Highlight key methodological innovations, core empirical results, known limitati
   defaultOptions: {
     structuredOutput: {
       schema: toStandardSchema(summarizationOutputSchema),
+      jsonPromptInjection: 'auto',
     },
   },
 });

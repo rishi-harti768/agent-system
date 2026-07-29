@@ -36,6 +36,7 @@ Your goal is to synthesize research literature, benchmark leaderboards, and expe
   defaultOptions: {
     structuredOutput: {
       schema: toStandardSchema(presentationOutputSchema),
+      jsonPromptInjection: 'auto',
     },
   },
 });

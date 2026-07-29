@@ -62,6 +62,7 @@ Provide a clear analysis of citation graphs and highlight foundational papers sh
   defaultOptions: {
     structuredOutput: {
       schema: toStandardSchema(citationOutputSchema),
+      jsonPromptInjection: 'auto',
     },
   },
 });

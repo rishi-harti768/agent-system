@@ -46,6 +46,7 @@ Your goal is to search Hugging Face Hub to identify available datasets, pre-trai
   defaultOptions: {
     structuredOutput: {
       schema: toStandardSchema(datasetOutputSchema),
+      jsonPromptInjection: 'auto',
     },
   },
 });

@@ -42,6 +42,7 @@ Always return structured responses adhering to the required schema, organizing p
   defaultOptions: {
     structuredOutput: {
       schema: toStandardSchema(paperSearchOutputSchema),
+      jsonPromptInjection: 'auto',
     },
   },
 });

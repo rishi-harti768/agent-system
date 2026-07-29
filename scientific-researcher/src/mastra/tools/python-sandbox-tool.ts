@@ -68,7 +68,11 @@ export const pythonSandboxTool = createTool({
   }) => {
     const startTime = Date.now();
     const effectiveTimeout = Math.min(Math.max(timeoutMs, 100), 30_000);
-    const sandboxDir = path.resolve(import.meta.dirname, '..', '..', '..', 'sandbox');
+    const cwd = process.cwd();
+    const projectBase = cwd.endsWith('scientific-researcher')
+      ? cwd
+      : path.resolve(cwd, 'scientific-researcher');
+    const sandboxDir = path.resolve(projectBase, 'sandbox');
 
     try {
       if (!fs.existsSync(sandboxDir)) {
@@ -143,16 +147,25 @@ export const pythonSandboxTool = createTool({
 
       let stdout = '';
       let stderr = '';
-      try {
-        stdout = await new Response(proc.stdout).text();
-      } catch {
-        stdout = '';
+      if (!timedOut) {
+        try {
+          stdout = await Promise.race([
+            new Response(proc.stdout).text(),
+            new Promise<string>((res) => setTimeout(() => res(''), 1000)),
+          ]);
+        } catch {
+          stdout = '';
+        }
+        try {
+          stderr = await Promise.race([
+            new Response(proc.stderr).text(),
+            new Promise<string>((res) => setTimeout(() => res(''), 1000)),
+          ]);
+        } catch {
+          stderr = '';
+        }
       }
-      try {
-        stderr = await new Response(proc.stderr).text();
-      } catch {
-        stderr = '';
-      }
+
 
       if (outcome === 'timeout' || timedOut) {
         return {

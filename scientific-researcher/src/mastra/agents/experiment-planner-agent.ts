@@ -19,7 +19,7 @@ export const experimentExecutionResultSchema = z.object({
   timedOut: z.boolean().optional(),
   executionTimeMs: z.number().optional(),
   error: z.string().optional(),
-  metrics: z.record(z.union([z.string(), z.number()])).optional(),
+  metrics: z.record(z.string(), z.union([z.string(), z.number()])).optional(),
 });
 
 export const experimentPlannerOutputSchema = z.object({
@@ -49,6 +49,7 @@ Your goal is to formulate verification experiments for testing research hypothes
   defaultOptions: {
     structuredOutput: {
       schema: toStandardSchema(experimentPlannerOutputSchema),
+      jsonPromptInjection: 'auto',
     },
   },
 });

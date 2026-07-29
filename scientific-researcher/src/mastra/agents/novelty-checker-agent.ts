@@ -45,6 +45,7 @@ Your goal is to evaluate proposed research hypotheses or architectural ideas aga
   defaultOptions: {
     structuredOutput: {
       schema: toStandardSchema(noveltyCheckerOutputSchema),
+      jsonPromptInjection: 'auto',
     },
   },
 });

@@ -1,6 +1,7 @@
 import { createTool } from '@mastra/core/tools';
 import { z } from 'zod';
-import { safeFetchJson } from './http-utils';
+import { createErrorResponse, safeFetchJson } from './http-utils';
+import { basePaperMetadataSchema } from '../agents/schemas';
 
 export interface SemanticScholarPaper {
   paperId?: string;
@@ -14,6 +15,47 @@ export interface SemanticScholarPaper {
   references?: Array<{ paperId?: string; title?: string }>;
 }
 
+export interface PaperReference {
+  paperId: string;
+  title: string;
+}
+
+export function buildCitationGraph(
+  paperId: string,
+  paperTitle: string,
+  citations: PaperReference[],
+  references: PaperReference[],
+) {
+  const nodes = [
+    { id: paperId, label: paperTitle, type: 'paper' },
+    ...citations.filter((c) => c.paperId).map((c) => ({ id: c.paperId, label: c.title, type: 'citation' })),
+    ...references.filter((r) => r.paperId).map((r) => ({ id: r.paperId, label: r.title, type: 'reference' })),
+  ];
+
+  const edges = [
+    ...citations.filter((c) => c.paperId).map((c) => ({ source: c.paperId, target: paperId, type: 'cites' })),
+    ...references.filter((r) => r.paperId).map((r) => ({ source: paperId, target: r.paperId, type: 'references' })),
+  ];
+
+  return { nodes, edges };
+}
+
+export const semanticScholarPaperSchema = basePaperMetadataSchema.extend({
+  paperId: z.string(),
+  title: z.string(),
+  abstract: z.string().nullable().optional(),
+  authors: z.array(z.string()),
+  citationCount: z.number().optional(),
+  influentialCitationCount: z.number().optional(),
+  url: z.string().optional(),
+  citations: z.array(z.object({ paperId: z.string(), title: z.string() })).optional(),
+  references: z.array(z.object({ paperId: z.string(), title: z.string() })).optional(),
+  citationGraph: z.object({
+    nodes: z.array(z.object({ id: z.string(), label: z.string(), type: z.string() })),
+    edges: z.array(z.object({ source: z.string(), target: z.string(), type: z.string() })),
+  }).optional(),
+});
+
 export const semanticScholarSearchTool = createTool({
   id: 'semantic_scholar_search',
   description: 'Search Semantic Scholar for academic paper details, citation graphs, and citation metrics.',
@@ -25,23 +67,7 @@ export const semanticScholarSearchTool = createTool({
     query: z.string(),
     count: z.number(),
     error: z.string().optional(),
-    results: z.array(
-      z.object({
-        paperId: z.string(),
-        title: z.string(),
-        abstract: z.string().nullable().optional(),
-        authors: z.array(z.string()),
-        citationCount: z.number().optional(),
-        influentialCitationCount: z.number().optional(),
-        url: z.string().optional(),
-        citations: z.array(z.object({ paperId: z.string(), title: z.string() })).optional(),
-        references: z.array(z.object({ paperId: z.string(), title: z.string() })).optional(),
-        citationGraph: z.object({
-          nodes: z.array(z.object({ id: z.string(), label: z.string(), type: z.string() })),
-          edges: z.array(z.object({ source: z.string(), target: z.string(), type: z.string() })),
-        }).optional(),
-      })
-    ),
+    results: z.array(semanticScholarPaperSchema),
   }),
   execute: async ({ query, limit = 5 }: { query: string; limit?: number }) => {
     const formattedQuery = encodeURIComponent(query);
@@ -70,16 +96,7 @@ export const semanticScholarSearchTool = createTool({
           ? paper.references.map((r) => ({ paperId: r.paperId || '', title: r.title || '' }))
           : [];
 
-        const nodes = [
-          { id: paperId, label: paperTitle, type: 'paper' },
-          ...citations.filter((c) => c.paperId).map((c) => ({ id: c.paperId, label: c.title, type: 'citation' })),
-          ...references.filter((r) => r.paperId).map((r) => ({ id: r.paperId, label: r.title, type: 'reference' })),
-        ];
-
-        const edges = [
-          ...citations.filter((c) => c.paperId).map((c) => ({ source: c.paperId, target: paperId, type: 'cites' })),
-          ...references.filter((r) => r.paperId).map((r) => ({ source: paperId, target: r.paperId, type: 'references' })),
-        ];
+        const citationGraph = buildCitationGraph(paperId, paperTitle, citations, references);
 
         return {
           paperId,
@@ -91,7 +108,7 @@ export const semanticScholarSearchTool = createTool({
           url: paper.url || `https://www.semanticscholar.org/paper/${paperId}`,
           citations,
           references,
-          citationGraph: { nodes, edges },
+          citationGraph,
         };
       });
 
@@ -101,13 +118,7 @@ export const semanticScholarSearchTool = createTool({
         results,
       };
     } catch (err: unknown) {
-      const error = err instanceof Error ? err.message : String(err);
-      return {
-        query,
-        count: 0,
-        error,
-        results: [],
-      };
+      return createErrorResponse(query, err);
     }
   },
 });

@@ -333,6 +333,24 @@ describe('Literature & Analysis Sub-Agents', () => {
       expect(subAgent.hasOwnMemory()).toBe(true);
     },
   );
+
+  test('experimentPlannerAgent, gapDetectionAgent, and noveltyCheckerAgent validate execution data output', async () => {
+    const gapResult = gapDetectionOutputSchema.safeParse({
+      topic: 'Real-time Adaptation',
+      identifiedGaps: [{ gapTitle: 'Latency Gap', description: 'Lack of real-time adaptation benchmark' }],
+      promisingDirections: ['Adaptive decay rates'],
+    });
+    expect(gapResult.success).toBe(true);
+
+    const experimentResult = experimentPlannerOutputSchema.safeParse({
+      hypothesis: 'Benchmark latency drops by 30%',
+      experimentDesign: { objective: 'Measure latency', methodology: 'Benchmark tensor allocation' },
+      code: 'print("OK")',
+      executionResult: { success: true, stdout: 'OK\n' },
+      conclusions: ['Validated'],
+    });
+    expect(experimentResult.success).toBe(true);
+  });
 });
 
 

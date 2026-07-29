@@ -51,6 +51,7 @@ Your goal is to synthesize findings from literature searches and benchmark leade
   defaultOptions: {
     structuredOutput: {
       schema: toStandardSchema(gapDetectionOutputSchema),
+      jsonPromptInjection: 'auto',
     },
   },
 });

@@ -148,7 +148,11 @@ describe('Code, Dataset, and Execution Sandbox Tools', () => {
 
     afterEach(() => {
       if (fs.existsSync(sandboxDir)) {
-        fs.rmSync(sandboxDir, { recursive: true, force: true });
+        try {
+          fs.rmSync(sandboxDir, { recursive: true, force: true });
+        } catch {
+          // Ignore Windows EBUSY locks during teardown
+        }
       }
     });
 

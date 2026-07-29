@@ -3,12 +3,7 @@ import { toStandardSchema } from '@mastra/core/schema';
 import { z } from 'zod';
 
 import { reportWriterTool } from '../tools/report-writer-tool';
-import { createSubAgentMemory, DEFAULT_SUB_AGENT_MODEL } from './schemas';
-
-export const reportSectionSchema = z.object({
-  heading: z.string(),
-  body: z.string(),
-});
+import { createSubAgentMemory, DEFAULT_SUB_AGENT_MODEL, reportSectionSchema } from './schemas';
 
 export const reportGeneratorOutputSchema = z.object({
   title: z.string().min(1, 'Title cannot be empty'),
@@ -37,6 +32,7 @@ Your goal is to transform research synthesis, literature findings, benchmark sta
   defaultOptions: {
     structuredOutput: {
       schema: toStandardSchema(reportGeneratorOutputSchema),
+      jsonPromptInjection: 'auto',
     },
   },
 });

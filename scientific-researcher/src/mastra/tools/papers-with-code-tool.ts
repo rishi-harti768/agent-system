@@ -1,6 +1,6 @@
 import { createTool } from '@mastra/core/tools';
 import { z } from 'zod';
-import { safeFetchJson } from './http-utils';
+import { createErrorResponse, safeFetchJson } from './http-utils';
 
 export interface PapersWithCodeNamedItem {
   name?: string;
@@ -121,13 +121,7 @@ export const papersWithCodeSearchTool = createTool({
         results,
       };
     } catch (err: unknown) {
-      const error = err instanceof Error ? err.message : String(err);
-      return {
-        query,
-        count: 0,
-        error,
-        results: [],
-      };
+      return createErrorResponse(query, err);
     }
   },
 });

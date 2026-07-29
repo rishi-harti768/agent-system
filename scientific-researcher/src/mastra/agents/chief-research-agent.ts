@@ -118,7 +118,7 @@ For local workspace changes, end with a plain-text URL using ${pathToFileURL(`${
     start_schedule: startScheduleTool,
     stop_schedule: stopScheduleTool,
     web_fetch: webFetchTool,
-    web_search: google.tools.googleSearch({}),
+    ...(process.env.GOOGLE_SEARCH_API_KEY ? { web_search: google.tools.googleSearch({}) } : {}),
     arxiv_search: arxivSearchTool,
     semantic_scholar_search: semanticScholarSearchTool,
     papers_with_code_search: papersWithCodeSearchTool,

@@ -1,5 +1,16 @@
 import { createTool } from '@mastra/core/tools';
 import { z } from 'zod';
+import { createErrorResponse } from './http-utils';
+import { basePaperMetadataSchema } from '../agents/schemas';
+
+export const arxivPaperSchema = basePaperMetadataSchema.extend({
+  id: z.string(),
+  title: z.string(),
+  abstract: z.string(),
+  authors: z.array(z.string()),
+  pdfUrl: z.string(),
+  published: z.string(),
+});
 
 export const arxivSearchTool = createTool({
   id: 'arxiv_search',
@@ -12,16 +23,7 @@ export const arxivSearchTool = createTool({
     query: z.string(),
     count: z.number(),
     error: z.string().optional(),
-    results: z.array(
-      z.object({
-        id: z.string(),
-        title: z.string(),
-        abstract: z.string(),
-        authors: z.array(z.string()),
-        pdfUrl: z.string(),
-        published: z.string(),
-      })
-    ),
+    results: z.array(arxivPaperSchema),
   }),
   execute: async ({ query, maxResults = 5 }: { query: string; maxResults?: number }) => {
     const formattedQuery = encodeURIComponent(query);
@@ -46,13 +48,7 @@ export const arxivSearchTool = createTool({
         results,
       };
     } catch (err: unknown) {
-      const error = err instanceof Error ? err.message : String(err);
-      return {
-        query,
-        count: 0,
-        error,
-        results: [],
-      };
+      return createErrorResponse(query, err);
     }
   },
 });
